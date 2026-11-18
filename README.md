@@ -2,589 +2,641 @@
 
 **Every campus opportunity, one bridge away.**
 
-CampusBridge is a web application that brings scholarships, internships, campus events and student
-organizations into one place. Students get **explainable recommendations**, **deadline tracking**
-and a **calendar with clash detection**. Organization representatives and administrators get
-role-specific workflows, which are currently **labelled demonstrations**.
+CampusBridge is a web application that brings **scholarships, internships, campus events and
+student organizations** into one place. Students get **recommendations that explain themselves**,
+**deadline tracking** and a **calendar that warns about clashing events**. Organization
+representatives publish events, and administrators review new listings before they go public.
 
-> **Status: database-free prototype.** CampusBridge runs entirely on **fictional sample data**.
-> There are no real accounts, no server-side storage and no secure roles yet. See
-> [Known limitations](#19-known-limitations).
->
-> **Independent project.** CampusBridge is a student project for CS341 Web Technologies. It is not
-> affiliated with, endorsed by or operated by Ashesi University or any other institution.
+It is built with **plain PHP 8 and MySQL 8**, with no framework, and runs on **AMPPS** or **Docker**.
+
+> **Independent student project.** CampusBridge is a CS341 Web Technologies project. It is not
+> affiliated with, endorsed by or operated by Ashesi University or any other institution. All
+> organizations, opportunities and events in the sample database are **fictional**.
 
 ---
 
 ## Contents
 
-1. [Project introduction](#1-project-introduction)
+1. [What CampusBridge does](#1-what-campusbridge-does)
 2. [Academic context](#2-academic-context)
 3. [Features and status](#3-features-and-status)
-4. [Functional requirements](#4-functional-requirements)
-5. [Non-functional requirements](#5-non-functional-requirements)
-6. [Technology stack](#6-technology-stack)
-7. [Architecture](#7-architecture)
-8. [Repository structure](#8-repository-structure)
-9. [Installation and commands](#9-installation-and-commands)
-10. [Configuration](#10-configuration)
-11. [Database-free development](#11-database-free-development)
-12. [Team collaboration](#12-team-collaboration)
-13. [Development roadmap](#13-development-roadmap)
-14. [Testing](#14-testing)
-15. [Viva quiz preparation](#15-viva-quiz-preparation)
-16. [Presentation and demo plan](#16-presentation-and-demo-plan)
-17. [Submission checklist](#17-submission-checklist)
-18. [AI assistance and academic responsibility](#18-ai-assistance-and-academic-responsibility)
-19. [Known limitations](#19-known-limitations)
-20. [License](#20-license)
+4. [Run it with Docker](#4-run-it-with-docker)
+5. [Run it with AMPPS](#5-run-it-with-ampps)
+6. [Demo accounts](#6-demo-accounts)
+7. [How the code is organized](#7-how-the-code-is-organized)
+8. [The database](#8-the-database)
+9. [Security](#9-security)
+10. [Testing](#10-testing)
+11. [Team collaboration](#11-team-collaboration)
+12. [Viva quiz preparation: concepts and tech stack explained](#12-viva-quiz-preparation)
+13. [Presentation and demo plan](#13-presentation-and-demo-plan)
+14. [Submission checklist](#14-submission-checklist)
+15. [AI assistance and academic responsibility](#15-ai-assistance-and-academic-responsibility)
+16. [Known limitations](#16-known-limitations)
+17. [License](#17-license)
 
 ---
 
-## 1. Project introduction
+## 1. What CampusBridge does
 
-### Problem statement
-
-University students hear about opportunities through many disconnected channels: email, group
-chats, notice boards and social media. Our **working hypotheses** (not yet verified) are:
+### The problem (our hypotheses, not yet verified)
 
 | #   | Hypothesis                                                                         |
 | --- | ---------------------------------------------------------------------------------- |
-| H1  | Opportunities are scattered across many channels, with no single place to look.    |
+| H1  | Opportunities are scattered across email, group chats and posters.                 |
 | H2  | Students miss scholarship and internship deadlines because they find out too late. |
-| H3  | Club events are hard to discover outside a student's existing friend group.        |
+| H3  | Club events are hard to discover outside a student's own friend group.             |
 | H4  | Students struggle to tell which opportunities fit their interests.                 |
 
-### Proposed solution
+**How to check them:** run a short survey (30+ students) and five 10-minute interviews, one per
+team member. Ask where students hear about opportunities, whether they missed a deadline last
+semester, and whether explained recommendations would increase their trust. Report the real
+numbers, including any that do not support the hypotheses. Do not collect names or student IDs
+without consent.
 
-One searchable platform that:
+### The solution
 
-- unifies opportunities, events and organizations in a single search;
-- ranks content for each student with a **transparent, rule-based score** that explains every recommendation;
-- tracks saved deadlines by urgency, detects clashes between saved events and exports everything to the student's own calendar app (`.ics`);
-- gives organization representatives and administrators their own workflows.
+- **One search** across opportunities, events and organizations, with filters.
+- **Explainable recommendations**: a points system that shows *why* each item is suggested.
+- **Deadline tracking**: saved opportunities grouped by urgency (today, this week, …).
+- **Calendar with clash detection**, plus export to Outlook, Google Calendar or Apple Calendar (`.ics`).
+- **Roles**: students, organization representatives and administrators, each with their own pages.
 
-### Target users
+### Users
 
-| User                            | Needs                                                                      |
-| ------------------------------- | -------------------------------------------------------------------------- |
-| **Guest**                       | Browse and search public content.                                          |
-| **Student**                     | Discover relevant items, save them, track deadlines, plan their week.      |
-| **Organization representative** | Publish and update events for their organization.                          |
-| **Administrator**               | Review new listings, catch scams or low-quality posts, understand content. |
-
-### Objectives
-
-1. Reduce the effort needed to find relevant opportunities.
-2. Reduce missed deadlines through urgency grouping and calendar export.
-3. Increase the visibility of student organizations and their events.
-4. Demonstrate production-minded engineering: validation, accessibility, testing and CI.
-
-### Validating the problem (to be done by the team)
-
-We have **not** collected any user research yet, and no results are claimed. Suggested plan:
-
-- **Survey** (Microsoft/Google Form, aim for 30+ students), for example:
-  1. Where do you usually hear about scholarships, internships and events? (multi-select)
-  2. In the last semester, did you miss an opportunity because you found out after the deadline? (yes / no / not sure)
-  3. How many group chats do you rely on for campus information?
-  4. How easy is it to find clubs that match your interests? (1–5)
-  5. Would explained recommendations ("because you chose Research") make you trust suggestions more? (1–5)
-  6. Which would you use most: search, recommendations, deadline tracker or calendar?
-- **Interviews:** five 10-minute interviews, one per team member, using the same questions.
-- Report the real numbers in the presentation, including any that do not support our hypotheses.
-- Do **not** collect names or student IDs unless you have a consent process.
+| Role                            | Can do                                                                         |
+| ------------------------------- | ------------------------------------------------------------------------------ |
+| Guest                           | Browse and search everything that is published.                                |
+| Student                         | Everything above, plus choose interests, save items, follow clubs, see the dashboard and calendar. |
+| Organization representative     | Everything a student can do, plus create, edit and delete **their own organization's** events. |
+| Administrator                   | Everything a student can do, plus approve or reject new listings and see analytics. |
 
 ---
 
 ## 2. Academic context
 
-- **Institution:** Ashesi University, Ghana
-- **Course:** CS341 Web Technologies, final project
-- **Team:** five Computer Science students
+- **Course:** CS341 Web Technologies, Ashesi University. Five-member group project.
+- **Deliverables:** a 15-minute video (OneDrive link on Canvas) and a public GitHub repository (link on klenam.ai).
 
-The weights below come from the team's summary of the course brief. **Team: check this section
-against the official _CS341 Web Technologies — Final Project_ PDF before submission.**
+These weights come from the team's summary of the brief. **Check them against the official PDF.**
 
-| Criterion                         | Weight | How CampusBridge addresses it                                                                                                                                                 |
-| --------------------------------- | ------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Usefulness                        | 10%    | A real student problem (scattered opportunities, missed deadlines), a validation plan, and features students act on (save, track, export).                                    |
-| Production-grade engineering      | 15%    | TypeScript throughout, Zod validation at every boundary, error and empty states, WCAG checks, responsive layouts, 75 unit/integration tests, 49 browser tests, CI.            |
-| Ambition and technical complexity | 25%    | Field-weighted search engine with typo tolerance, explainable recommender, sweep-line clash detection, RFC 5545 calendar export, role workflows, moderation hints, analytics. |
-| Individual viva quiz              | 50%    | A deliberately simple architecture (no microservices, no ORM yet), commented code, and a [viva guide](#15-viva-quiz-preparation).                                             |
+| Criterion                         | Weight | How CampusBridge addresses it                                                                                                 |
+| --------------------------------- | ------ | ----------------------------------------------------------------------------------------------------------------------------- |
+| Usefulness                        | 10%    | A real student problem, a plan to validate it, and features students act on (save, track, export).                             |
+| Production-grade engineering      | 15%    | Real accounts with hashed passwords, server-side role checks, prepared statements, CSRF protection, validation, error pages, responsive design, 77 automated tests, CI. |
+| Ambition and technical complexity | 25%    | Search engine with typo tolerance, explainable recommender, clash detection algorithm, `.ics` export, review workflow, analytics. |
+| Individual viva quiz              | 50%    | Plain PHP with no framework "magic", heavily commented code, and the [viva guide](#12-viva-quiz-preparation).                  |
 
 ---
 
 ## 3. Features and status
 
-**Legend:** ✅ Implemented · 🟡 Partial or demo-only · 📋 Planned · ⏸ Deferred (needs a backend)
+✅ = implemented and tested · 📋 = planned
 
-| Feature                                   | Status | Notes                                                                                                               |
-| ----------------------------------------- | ------ | ------------------------------------------------------------------------------------------------------------------- |
-| Home page                                 | ✅     | Search, closing-soon list, this week's events, disclaimer.                                                          |
-| Unified search (`/explore`)               | ✅     | Opportunities, events and organizations; tabs with counts; filters in the URL; works without JavaScript (GET form). |
-| Filters and sorting                       | ✅     | Interests, category, date window, location mode; sort by relevance, soonest or newest.                              |
-| Opportunity, event and organization pages | ✅     | Source attribution, safe external links, related items, 404 for unknown IDs.                                        |
-| Events directory                          | ✅     | Grouped by day, filter by category.                                                                                 |
-| Organizations directory                   | ✅     | Filter by category; follow and unfollow.                                                                            |
-| Interests and preferences                 | ✅     | Live preview of recommendations; reset all data.                                                                    |
-| Explainable recommendations               | ✅     | Rule-based score with a points breakdown on every card.                                                             |
-| Saved items and deadline tracker          | ✅     | Grouped by urgency (today, 7 days, 14 days, later, rolling, closed).                                                |
-| Calendar and clash detection              | ✅     | Month grid plus accessible agenda; clashes highlighted.                                                             |
-| Calendar export (`.ics`)                  | ✅     | Events plus all-day deadline entries; works in Outlook, Google and Apple Calendar.                                  |
-| Organization rep workflow                 | 🟡     | **Demo only:** create, edit and delete events with full validation; stored in this browser only.                    |
-| Admin review queue                        | 🟡     | **Demo only:** approve or reject (rejection needs a reason), undo, automated moderation hints.                      |
-| Admin analytics                           | 🟡     | Charts computed from the **sample** catalogue, with table views. Not real usage data.                               |
-| Event "interest" / RSVP                   | 🟡     | Adds the event to the student's calendar; **not** a reservation. Capacity is not enforced.                          |
-| In-app deadline reminders                 | 📋     | Stretch goal (client-side).                                                                                         |
-| Real accounts and authentication          | ⏸      | Needs a backend.                                                                                                    |
-| Server-enforced roles and ownership       | ⏸      | Needs a backend.                                                                                                    |
-| Multi-user persistence and sync           | ⏸      | Needs a backend.                                                                                                    |
-| Email notifications                       | ⏸      | Needs a backend and an email provider.                                                                              |
+| Feature                                   | Status | Where                                         |
+| ----------------------------------------- | ------ | --------------------------------------------- |
+| Home page with search and highlights      | ✅     | `public/index.php`                            |
+| Unified search, filters and sorting       | ✅     | `public/explore.php`, `src/search.php`        |
+| Opportunity, event and organization pages | ✅     | `public/opportunity.php`, `event.php`, `organization.php` |
+| Events by day, organizations by category  | ✅     | `public/events.php`, `organizations.php`      |
+| Accounts: sign up, sign in, sign out      | ✅     | `public/register.php`, `login.php`, `logout.php`, `src/auth.php` |
+| Interests and recommendations             | ✅     | `public/preferences.php`, `dashboard.php`, `src/recommend.php` |
+| Save, "I'm interested" and follow         | ✅     | `public/toggle.php`                           |
+| Deadline tracker                          | ✅     | `public/saved.php`, `src/deadlines.php`       |
+| Calendar with clash detection             | ✅     | `public/calendar.php`, `src/schedule.php`     |
+| Calendar export (`.ics`)                  | ✅     | `public/calendar-export.php`, `src/ics.php`   |
+| Org rep: create, edit, delete own events  | ✅     | `public/manage.php`, `manage-event.php`, `manage-event-delete.php` |
+| Admin: review queue with automated hints  | ✅     | `public/admin.php`, `admin-review.php`, `src/moderation.php` |
+| Admin: analytics charts                   | ✅     | `public/admin.php`, `src/analytics.php`       |
+| Deadline reminder emails                  | 📋     | Needs an email service                        |
+| Password reset by email                   | 📋     | Needs an email service                        |
+| Event registration with capacity limits   | 📋     | "I'm interested" is a bookmark, not a reservation |
 
 ---
 
-## 4. Functional requirements
+## 4. Run it with Docker
 
-| ID    | Requirement                                                                                                         | Status |
-| ----- | ------------------------------------------------------------------------------------------------------------------- | ------ |
-| FR-1  | Users can search across opportunities, events and organizations with one query.                                     | ✅     |
-| FR-2  | Users can filter by type, interest, category, date window and location mode, and sort results.                      | ✅     |
-| FR-3  | Search state is stored in the URL and survives refresh, Back and sharing.                                           | ✅     |
-| FR-4  | Closed opportunities and past events are excluded from search and recommendations.                                  | ✅     |
-| FR-5  | Detail pages show structured attributes and attribute external sources.                                             | ✅     |
-| FR-6  | Students can select interests and see recommendations update immediately.                                           | ✅     |
-| FR-7  | Every recommendation lists the rules that produced its score.                                                       | ✅     |
-| FR-8  | Students can save and unsave opportunities, mark interest in events, and follow organizations.                      | ✅     |
-| FR-9  | Saved opportunities are grouped by deadline urgency.                                                                | ✅     |
-| FR-10 | Overlapping saved events are detected and shown on the dashboard and calendar.                                      | ✅     |
-| FR-11 | Saved events and deadlines can be exported as an `.ics` file.                                                       | ✅     |
-| FR-12 | Organization reps (demo) can create, edit and delete events; the form validates every field and rejects past dates. | 🟡     |
-| FR-13 | Admins (demo) can approve or reject pending items and see automated moderation hints.                               | 🟡     |
-| FR-14 | Admins (demo) can view content analytics, each chart with a table alternative.                                      | 🟡     |
-| FR-15 | Users can delete all their locally stored data.                                                                     | ✅     |
+The easiest option: one command starts the website, MySQL and phpMyAdmin.
 
----
-
-## 5. Non-functional requirements
-
-| Quality         | Approach                                                                                                                                                                                                                                                                                                    |
-| --------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Responsiveness  | Mobile-first Tailwind layouts; slide-in menu below 1280px; automated "no horizontal scroll" test on a Pixel 7 viewport and a desktop viewport.                                                                                                                                                              |
-| Accessibility   | Semantic HTML, skip link, visible focus rings, labelled controls, `aria-pressed` toggles, `aria-live` status messages, focus moved to the first form error, charts with table views. axe-core runs on 15 page states in CI.                                                                                 |
-| Security        | No secrets; untrusted data validated with Zod (fixtures, URL parameters, localStorage, forms); React escapes all text (no `dangerouslySetInnerHTML`); https-only external links with `rel="noopener noreferrer"`; security headers (`X-Frame-Options`, `nosniff`, `Referrer-Policy`, `Permissions-Policy`). |
-| Reliability     | Malformed records are skipped and logged; corrupt or tampered localStorage falls back to defaults; error boundaries (`error.tsx`, `global-error.tsx`); custom 404; empty and loading states everywhere.                                                                                                     |
-| Performance     | Server components by default; JavaScript only for interactive "islands"; small dependency set; pages cached and revalidated hourly (ISR); charts only on the admin page.                                                                                                                                    |
-| Maintainability | Business logic in pure functions under `src/lib` (no React), a single data-access interface, Zod schemas as the source of truth for types, ESLint, Prettier, a PR template and CI.                                                                                                                          |
-| Time handling   | Dates stored as UTC ISO strings and compared by calendar day in `Africa/Accra`.                                                                                                                                                                                                                             |
-
----
-
-## 6. Technology stack
-
-| Technology                   | Why we chose it                                                                                                                   |
-| ---------------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
-| **Next.js 16 (App Router)**  | Routing, server rendering and caching in one framework; a backend (route handlers) can be added later without a separate service. |
-| **React 19**                 | Component model; `useSyncExternalStore` for the localStorage store.                                                               |
-| **TypeScript**               | Catches mistakes at compile time and documents data shapes.                                                                       |
-| **Tailwind CSS 4**           | Consistent design tokens (`globals.css`) without writing separate CSS files.                                                      |
-| **Zod 4**                    | One schema both validates data at runtime and generates the TypeScript type.                                                      |
-| **date-fns + @date-fns/tz**  | Small, explicit date maths in the campus time zone.                                                                               |
-| **Radix Dialog**             | Accessible mobile menu (focus trap, Escape to close) without writing that logic ourselves.                                        |
-| **lucide-react**             | Open-source icons.                                                                                                                |
-| **Recharts**                 | Simple declarative bar charts for the admin analytics.                                                                            |
-| **Vitest + Testing Library** | Fast unit and component tests.                                                                                                    |
-| **Playwright + axe-core**    | Real-browser end-to-end and accessibility tests on desktop and mobile viewports.                                                  |
-| **ESLint + Prettier**        | Consistent, reviewable code.                                                                                                      |
-| **GitHub Actions**           | Runs every check on each pull request.                                                                                            |
-
-**Deliberately not used yet:** a database, an ORM, an authentication library, global state
-libraries (Redux and similar) and component libraries. Each would add concepts to learn without
-helping the current prototype.
-
-**A note on Next.js 16:** `cacheComponents` is switched **off** in `next.config.ts`. We use the
-classic caching model (`export const revalidate = 3600`) because it is easier to explain.
-
----
-
-## 7. Architecture
-
-### Layers
-
-```mermaid
-flowchart TD
-  subgraph Browser
-    UI["Client components<br/>(dashboard, filters, save buttons, forms)"]
-    Store["state/ — localStorage store<br/>(useSyncExternalStore + Zod)"]
-  end
-  subgraph Server["Next.js server"]
-    Pages["app/ — routes (server components)"]
-    Repo["services/ — CatalogRepository interface"]
-    Mock["MockCatalogRepository<br/>(JSON fixtures + Zod)"]
-  end
-  Logic["lib/ — pure business logic<br/>search · recommend · deadlines · schedule · ics"]
-
-  Pages --> Repo --> Mock
-  Pages -- "catalogue as props" --> UI
-  UI <--> Store
-  Pages --> Logic
-  UI --> Logic
-  Repo -. "future" .-> API["ApiCatalogRepository<br/>(secure backend + database)"]
-```
-
-### Data flow (example: the dashboard)
-
-1. `app/dashboard/page.tsx` (a server component) asks `catalogRepository.getCatalog()` for content.
-2. `MockCatalogRepository` reads the JSON fixtures, validates each record with Zod, turns the
-   relative dates into real dates, and returns published items only.
-3. The page passes the catalogue to `DashboardView` (a client component).
-4. `DashboardView` reads the student's interests and saved items from the localStorage store,
-   then calls the **pure** functions `recommend()`, `groupByDeadline()` and `conflictMap()`.
-5. When the student changes an interest, the store updates, every subscribed component
-   re-renders, and the recommendations change instantly.
-
-### Key modules
-
-| Module                 | Responsibility                                                                                 |
-| ---------------------- | ---------------------------------------------------------------------------------------------- |
-| `schemas/`             | Zod schemas: domain types, taxonomies, event-form validation.                                  |
-| `services/`            | `CatalogRepository` interface plus the mock implementation. **The only place data is loaded.** |
-| `lib/search/`          | Tokenising, field-weighted scoring, typo tolerance, filters, URL parameter parsing.            |
-| `lib/recommend/`       | Scoring rules (`weights.ts`) and the ranking engine (`score.ts`).                              |
-| `lib/deadlines.ts`     | Urgency buckets, labels and sorting.                                                           |
-| `lib/schedule.ts`      | Overlap test and sweep-line clash detection.                                                   |
-| `lib/ics.ts`           | RFC 5545 calendar export (escaping, line folding, all-day deadlines).                          |
-| `lib/moderation.ts`    | Rule-based review hints (payment requests, unverifiable providers and so on).                  |
-| `lib/analytics.ts`     | Aggregations for the admin charts.                                                             |
-| `state/`               | Validated localStorage store, user data, demo data, React hooks.                               |
-| `components/ui/`       | Design-system primitives (buttons, badges, form fields, empty states).                         |
-| `components/features/` | Feature components (cards, dashboard, calendar, forms, admin).                                 |
-
-### State management
-
-- **URL**: search and filter state (`/explore?q=…&interest=…`), the source of truth for search.
-- **localStorage** (`campusbridge:user:v1`): interests, saved IDs, follows and demo role.
-- **localStorage** (`campusbridge:demo:v1`): demo event submissions and moderation decisions.
-- **React state**: temporary UI state only (open menus, form drafts).
-
-Both stores are versioned and validated, so tampered or outdated data resets safely.
-
-### Routes
-
-| Route                                                                         | Rendering                           |
-| ----------------------------------------------------------------------------- | ----------------------------------- |
-| `/`, `/dashboard`, `/saved`, `/calendar`, `/preferences`, `/manage`, `/admin` | Prerendered, revalidated hourly     |
-| `/about`                                                                      | Static                              |
-| `/explore`, `/events`, `/organizations`, detail pages                         | Rendered per request (read the URL) |
-
----
-
-## 8. Repository structure
-
-```
-.
-├── .github/
-│   ├── workflows/ci.yml          # format, lint, typecheck, tests, build, e2e, audit
-│   └── pull_request_template.md
-├── e2e/                          # Playwright browser tests (journeys + accessibility)
-├── scripts/vitest.mjs            # runs Vitest safely on Windows (see Testing)
-├── src/
-│   ├── app/                      # routes (one folder per URL), layout, error and 404 pages
-│   ├── components/
-│   │   ├── layout/               # header, footer, logo
-│   │   ├── ui/                   # reusable primitives
-│   │   └── features/             # feature components
-│   ├── data/fixtures/            # FICTIONAL sample data (JSON)
-│   ├── lib/                      # pure business logic (no React)
-│   ├── schemas/                  # Zod schemas = source of truth for types
-│   ├── services/                 # data-access interface + mock implementation
-│   └── state/                    # localStorage stores and hooks
-├── tests/
-│   ├── unit/                     # business logic, validation, data, storage
-│   └── integration/              # components + store + logic together
-├── .env.example                  # documents that no variables are needed
-├── AGENTS.md                     # generated by Next.js for AI coding tools (safe to ignore)
-├── next.config.ts                # security headers, caching model
-├── playwright.config.ts
-└── vitest.config.mts
-```
-
----
-
-## 9. Installation and commands
-
-**Requirements:** Node.js 20.9 or newer (tested with Node 24) and npm. Git for collaboration.
+**Requirements:** [Docker Desktop](https://www.docker.com/products/docker-desktop/).
 
 ```bash
-git clone <repository-url> campusbridge
-cd campusbridge
-npm ci                     # install exact versions from package-lock.json
-npm run dev                # http://localhost:3000
+git clone https://github.com/Tanseychuong/campus_bridge.git
+cd campus_bridge
+docker compose up --build
 ```
 
-| Command              | What it does                                                               |
-| -------------------- | -------------------------------------------------------------------------- |
-| `npm run dev`        | Development server with hot reload.                                        |
-| `npm run build`      | Production build.                                                          |
-| `npm run start`      | Serve the production build (run `build` first).                            |
-| `npm run lint`       | ESLint.                                                                    |
-| `npm run typecheck`  | Generates route types, then runs the TypeScript compiler.                  |
-| `npm test`           | Unit and integration tests (Vitest).                                       |
-| `npm run test:watch` | Vitest in watch mode while developing.                                     |
-| `npm run test:e2e`   | Playwright tests (run `npm run build` first; it starts the server itself). |
-| `npm run format`     | Format all files with Prettier.                                            |
-| `npm run check`      | lint + typecheck + unit tests + build: **run this before every PR**.       |
+| Open                    | What                                                    |
+| ----------------------- | ------------------------------------------------------- |
+| http://localhost:8080   | CampusBridge                                            |
+| http://localhost:8081   | phpMyAdmin (user `root`, password `campusbridge-dev`)  |
 
-First-time Playwright setup: `npx playwright install chromium`.
-
-**Windows tip:** keep the project **outside OneDrive** (for example `C:\dev\campusbridge`).
-OneDrive syncing thousands of files in `node_modules` slows installs and can lock files.
+- The first start imports `database/schema.sql` and `database/seed.sql` automatically.
+- Your code is shared with the container, so edits appear when you refresh the page.
+- **Reset the database** (for example to refresh the sample dates): `docker compose down -v`, then `docker compose up`.
+- Stop everything: `docker compose down`.
 
 ---
 
-## 10. Configuration
+## 5. Run it with AMPPS
 
-No environment variables are needed. `.env.example` explains this. All `.env*` files except
-the example are git-ignored. **Never commit real credentials.** When a backend is added, document
-each new variable in `.env.example` with placeholder values only.
+**Requirements:** [AMPPS](https://ampps.com/) with PHP 8.2 and MySQL 8.
 
----
+1. **Copy the project** into the AMPPS web folder, for example `C:\Program Files\Ampps\www\campus_bridge`
+   (or clone it there with Git).
+2. **Start Apache and MySQL** in the AMPPS control panel.
+3. **Create the database:** open http://localhost/phpmyadmin, click **New**, name it `campus_bridge`,
+   and choose collation `utf8mb4_unicode_ci`.
+4. **Import the tables, then the data:** select the `campus_bridge` database, open **Import**, and import
+   `database/schema.sql` first, then `database/seed.sql`.
+5. **Set your MySQL password** if it is not the AMPPS default (`mysql`): copy
+   `src/config.local.example.php` to `src/config.local.php` and enter your password. This file is
+   git-ignored, so your password is never pushed.
+6. Open **http://localhost/campus_bridge/public/**. Opening http://localhost/campus_bridge/ also redirects there.
 
-## 11. Database-free development
+**Troubleshooting**
 
-- **Sample data** lives in `src/data/fixtures/*.json`. Every organization, opportunity, event,
-  provider, email address and member count is **fictional**. Links use the reserved
-  `example.org` domain, and a unit test enforces this.
-- **Relative dates.** Fixtures store `"deadlineInDays": 12` instead of a fixed date, so the demo
-  never goes stale. `MockCatalogRepository` turns these into real dates relative to today
-  (Accra time).
-- **Validation.** Every record is checked with Zod when loaded. Invalid records are skipped and
-  logged (try breaking one and run `npm test`).
-- **Personal data** (interests, saved items, follows, demo role) is stored only in the browser's
-  localStorage. It does not sync across devices and is lost if the browser data is cleared.
-- **Demo roles** are a user-experience switch, **not security**. Anyone can choose any role.
-
-**Adding a backend later:** create `ApiCatalogRepository implements CatalogRepository`, swap it
-in `src/services/index.ts`, and move user data from localStorage to authenticated API calls.
-Authorization (who may edit which organization, who is an admin) **must** be enforced on the
-server. The current client-side role switch must then be removed. Use a brand-new, independent
-database project and credentials.
-
-**Recommendation for the final submission:** if the team wants to demonstrate genuine multi-user
-features (real sign-in, shared reviews, organization ownership), add a small secure backend
-(for example PostgreSQL with server-side authorization checks) before submitting. Otherwise,
-present the role workflows clearly as demonstrations.
+- *"CampusBridge could not connect to its database"*: MySQL is not running, the database is not
+  imported, or the password in `config.local.php` is wrong.
+- *Sample dates look old*: the sample dates are relative to the day you imported `seed.sql`.
+  Re-import both files to refresh them.
+- To see detailed errors while developing, set `'debug' => true` in `src/config.local.php`.
 
 ---
 
-## 12. Team collaboration
+## 6. Demo accounts
 
-### Proposed ownership
+These exist only in the sample data. The password for all three is **`CampusBridge2026!`**.
 
-Each member owns one area, writes its tests, and **reviews another member's area**, so nobody
-knows only their own code. Replace "Member N" with names.
+| Email                 | Role                                            |
+| --------------------- | ----------------------------------------------- |
+| `student@example.org` | Student                                         |
+| `rep@example.org`     | Organization rep for *Code & Circuits Society* |
+| `admin@example.org`   | Administrator                                   |
 
-| Member                               | Owns                                                                                     | Viva focus                                       | Reviews  |
-| ------------------------------------ | ---------------------------------------------------------------------------------------- | ------------------------------------------------ | -------- |
-| 1 — Coordinator & architecture       | `services/`, `state/`, routing in `app/`, CI, integration                                | Data flow, server vs client components, caching  | Member 5 |
-| 2 — Design system & accessibility    | `components/ui/`, `components/layout/`, `globals.css`, responsive and a11y fixes         | Semantic HTML, focus, Tailwind tokens, WCAG      | Member 3 |
-| 3 — Discovery & recommendations      | `lib/search/`, `lib/recommend/`, `/explore`, dashboard recommendations                   | Ranking formula, typo tolerance, URL state       | Member 4 |
-| 4 — Events, organizations & calendar | `lib/schedule.ts`, `lib/ics.ts`, `lib/calendar-grid.ts`, events, organizations, calendar | Interval overlap, time zones, RFC 5545           | Member 1 |
-| 5 — Data, testing & quality          | `schemas/`, fixtures, `tests/`, `e2e/`, manage/admin demo, security checklist            | Validation, testing pyramid, XSS, external links | Member 2 |
+Anyone can also create a new student account on the **Create account** page. Organization reps
+and admins are assigned in the database (`users.role` and `users.organization_id`).
+**Delete or change these demo accounts before any real use.**
+
+---
+
+## 7. How the code is organized
+
+```
+campus_bridge/
+├── public/                  ← the ONLY folder the web server shows to browsers
+│   ├── index.php            home page
+│   ├── explore.php          search
+│   ├── opportunity.php      one opportunity (?id=…)
+│   ├── event.php            one event (?id=…)
+│   ├── organization.php     one organization (?id=…)
+│   ├── events.php           events grouped by day
+│   ├── organizations.php    organization directory
+│   ├── login.php / register.php / logout.php
+│   ├── dashboard.php / saved.php / calendar.php / calendar-export.php / preferences.php
+│   ├── toggle.php           handles Save / I'm interested / Follow buttons
+│   ├── manage.php / manage-event.php / manage-event-delete.php   (org reps)
+│   ├── admin.php / admin-review.php                              (admins)
+│   ├── about.php / not-found.php
+│   └── assets/              app.css, app.js, icon.svg
+├── src/                     PHP functions (no HTML)
+│   ├── bootstrap.php        loaded first by every page
+│   ├── config.php           settings (database, time zone)
+│   ├── database.php         PDO connection + fetch_all / fetch_one / execute
+│   ├── helpers.php          e(), url(), redirect(), flash messages, reading input
+│   ├── security.php         sessions, CSRF tokens, security headers
+│   ├── auth.php             sign in/out, current_user(), require_role()
+│   ├── taxonomy.php         category and interest labels
+│   ├── dates.php            time-zone-aware date helpers
+│   ├── deadlines.php        urgency buckets for deadlines
+│   ├── schedule.php         clash detection
+│   ├── recommend.php        the recommendation rules
+│   ├── search.php           the search engine and filters
+│   ├── ics.php              calendar export
+│   ├── moderation.php       review hints for admins
+│   ├── analytics.php        numbers for the charts
+│   ├── validation.php       form checking
+│   └── data/                ALL SQL lives here: organizations, opportunities, events, users, interests
+├── templates/               shared HTML: header, footer, cards, error pages
+├── database/
+│   ├── schema.sql           creates the tables
+│   └── seed.sql             fictional sample data + demo accounts
+├── tests/
+│   ├── Unit/                tests for the logic (no database needed)
+│   ├── Feature/             tests that run the real website against a test database
+│   └── Support/             test helpers
+├── docker/Dockerfile        the Apache + PHP image
+├── docker-compose.yml       website + MySQL + phpMyAdmin
+├── composer.json            only needed for running the tests (PHPUnit)
+└── .github/workflows/ci.yml automatic checks on GitHub
+```
+
+### The life of one request
+
+What happens when someone opens `explore.php?q=data`:
+
+```mermaid
+sequenceDiagram
+    participant B as Browser
+    participant A as Apache
+    participant P as public/explore.php
+    participant S as src/ functions
+    participant D as MySQL
+
+    B->>A: GET /explore.php?q=data
+    A->>P: run the PHP file
+    P->>S: require bootstrap.php (load functions, start session)
+    P->>S: read_explore_filters($_GET) — check every URL value
+    P->>D: get_opportunities(), get_events(), get_organizations() (prepared SQL)
+    D-->>P: rows
+    P->>S: build_search_index() + run_search() — score and sort
+    P->>P: header.php + cards + footer.php (every value passed through e())
+    P-->>B: finished HTML page
+```
+
+Every page follows the same simple pattern:
+
+```php
+<?php
+require __DIR__ . '/../src/bootstrap.php';   // 1. load everything
+$user = require_login();                      // 2. check who is allowed (if needed)
+$events = get_events();                       // 3. get data
+$pageTitle = 'Campus events';
+require __DIR__ . '/../templates/header.php'; // 4. print the page
+?>
+<h1>…</h1>
+<?php require __DIR__ . '/../templates/footer.php'; ?>
+```
+
+Forms that **change** data use **Post/Redirect/Get**: the form POSTs to a PHP file, which checks
+the CSRF token and permissions, updates the database, sets a flash message and redirects to a
+normal page.
+
+---
+
+## 8. The database
+
+```mermaid
+erDiagram
+    organizations ||--o{ events : "runs"
+    organizations ||--o{ opportunities : "may post"
+    organizations ||--o{ users : "has reps"
+    users ||--o{ saved_opportunities : ""
+    users ||--o{ saved_events : ""
+    users ||--o{ follows : ""
+    users ||--o{ user_interests : ""
+    opportunities ||--o{ saved_opportunities : ""
+    events ||--o{ saved_events : ""
+    organizations ||--o{ follows : ""
+    interests ||--o{ user_interests : ""
+    interests ||--o{ opportunity_interests : ""
+    interests ||--o{ event_interests : ""
+    interests ||--o{ organization_interests : ""
+    opportunities ||--o{ opportunity_interests : ""
+    events ||--o{ event_interests : ""
+    organizations ||--o{ organization_interests : ""
+```
+
+- **Main tables:** `organizations`, `opportunities`, `events`, `users`, `interests`.
+- **Join tables** (many-to-many): `*_interests`, `saved_opportunities`, `saved_events`, `follows`.
+  Their primary key is the pair of ids, so the same item cannot be saved twice.
+- **Status column:** `published`, `pending` or `rejected`. Only published items are shown to the public.
+- **Dates** are stored in UTC (`DATETIME`). Ghana uses UTC+0, so stored times equal campus times.
+- **Foreign keys with `ON DELETE CASCADE`**: deleting an event also deletes its saved-event and interest rows.
+- **Indexes** on `(status, deadline)` and `(status, starts_at)` speed up the most common queries.
+
+---
+
+## 9. Security
+
+| Threat                        | What could go wrong                                      | How CampusBridge prevents it                                   | Where |
+| ----------------------------- | -------------------------------------------------------- | -------------------------------------------------------------- | ----- |
+| SQL injection                 | Typed text changes an SQL query                          | Every query uses PDO **prepared statements** with `?` placeholders | `src/database.php`, `src/data/` |
+| Cross-site scripting (XSS)    | Someone stores `<script>` in a title                     | Every printed value goes through `e()` (`htmlspecialchars`); a strict **Content-Security-Policy** blocks inline scripts | `src/helpers.php`, `src/security.php` |
+| Cross-site request forgery (CSRF) | Another site submits a form while you are signed in  | A secret token in every POST form, checked with `hash_equals` | `src/security.php` |
+| Stolen passwords              | Database leak reveals passwords                          | `password_hash()` (bcrypt with a random salt) and `password_verify()` | `src/data/users.php`, `src/auth.php` |
+| Password guessing             | Unlimited sign-in attempts                               | A 30-second pause after 5 failures; the same message for a wrong email or password | `public/login.php` |
+| Session hijacking or fixation | Someone steals or plants a session ID                    | HttpOnly + SameSite cookies; a new session ID after sign-in   | `src/security.php`, `src/auth.php` |
+| Broken access control         | A student opens the admin page, or a rep edits another club's event | `require_role()` on every protected page; ownership checked in SQL (`WHERE id = ? AND organization_id = ?`) | `src/auth.php`, `public/manage-event.php` |
+| Open redirect                 | A link sends people to a fake site after sign-in         | `safe_return_path()` only allows local paths                   | `src/helpers.php` |
+| Clickjacking                  | Our pages are shown inside another site's frame          | `X-Frame-Options: DENY` and `frame-ancestors 'none'`           | `src/security.php` |
+| Exposed source code           | Browsers download `src/` or `database/`                  | Only `public/` is the web root; other folders have `Require all denied` | `.htaccess` files, `docker/Dockerfile` |
+| Leaked secrets                | Passwords pushed to GitHub                               | `src/config.local.php` and `.env` are git-ignored              | `.gitignore` |
+| Unsafe external links         | A `javascript:` link, or a new tab that controls ours    | Only `https://` links are clickable; `rel="noopener noreferrer"` | `public/opportunity.php` |
+
+---
+
+## 10. Testing
+
+| Suite             | What it checks                                                                                           | Tests |
+| ----------------- | -------------------------------------------------------------------------------------------------------- | ----- |
+| `tests/Unit`      | Recommendation rules, search scoring and typos, filters from the URL, dates, deadlines, clash detection, `.ics`, moderation, analytics, validation, `e()`, safe redirects | 48 |
+| `tests/Feature`   | The real website against a separate test database: every public page, 404s, XSS escaping, security headers, sign-up, sign-in, CSRF rejection, open-redirect blocking, saving, recommendations, calendar clashes, `.ics` download, follows, role restrictions, the full submit → review → publish workflow, ownership checks | 29 |
+
+### Run the tests
+
+The tests need **Composer** (for PHPUnit) and, for feature tests, a **MySQL server**. Feature
+tests create and delete their own database called `campus_bridge_test`; your real data is never touched.
+
+```bash
+composer install            # once; or: docker run --rm -v "$PWD":/app -w /app composer:2 install
+
+# With Docker's MySQL (docker compose up must be running):
+TEST_DB_PORT=3307 TEST_DB_PASSWORD=campusbridge-dev vendor/bin/phpunit
+
+# With AMPPS MySQL (default port 3306; use your own password):
+TEST_DB_PASSWORD=your-password vendor/bin/phpunit
+
+vendor/bin/phpunit --testsuite unit     # logic only, no database needed
+```
+
+On Windows PowerShell, set the variables first: `$env:TEST_DB_PASSWORD="…"; vendor/bin/phpunit`.
+
+### Last results (18 November 2026, Windows 11, PHP 8.2.33, MySQL 8.0)
+
+- `php -l` on every PHP file: no syntax errors
+- `vendor/bin/phpunit`: **77 tests, 206 assertions, all passing** (48 unit, 29 feature)
+- Docker: site, 404 page and phpMyAdmin respond, `src/` is not reachable from the browser
+- `composer audit`: no known vulnerabilities
+- Checked by hand: AMPPS-style sub-folder install (`/campus_bridge/public/`) with links, styles and sign-in working; desktop and phone layouts
+
+### Not yet tested
+
+- Automated accessibility scanning (axe) and cross-browser tests. Check by hand: keyboard-only
+  navigation, a screen reader (NVDA or VoiceOver), 200% zoom, Firefox and Safari.
+- A full run inside AMPPS's own Apache. The sub-folder layout was simulated with PHP's built-in
+  server; please confirm on one teammate's AMPPS.
+
+---
+
+## 11. Team collaboration
+
+### Suggested ownership
+
+Each member owns an area, writes its tests, and **reviews someone else's area**.
+
+| Member                          | Owns                                                            | Reviews  |
+| ------------------------------- | --------------------------------------------------------------- | -------- |
+| 1 — Coordinator & architecture  | `src/bootstrap.php`, `config.php`, `database.php`, Docker, CI   | Member 5 |
+| 2 — Design & accessibility      | `templates/`, `public/assets/`, responsive layout               | Member 3 |
+| 3 — Discovery & recommendations | `src/search.php`, `src/recommend.php`, `explore.php`, `dashboard.php` | Member 4 |
+| 4 — Events, calendar & clubs    | `src/schedule.php`, `ics.php`, `deadlines.php`, events, calendar, organizations | Member 1 |
+| 5 — Accounts, roles & data      | `src/auth.php`, `security.php`, `validation.php`, `src/data/`, `database/`, manage/admin pages, tests | Member 2 |
 
 ### Git workflow
 
-1. `main` is always deployable. Ask the repository owner to enable **branch protection**: require
-   a pull request, one approval and a passing CI run.
-2. Create a branch per task: `feat/deadline-reminders`, `fix/calendar-overflow`, `docs/viva-notes`.
-3. Make small commits with clear messages, for example `feat(search): add location filter`.
-4. Before opening a PR, run `npm run check` and, for UI changes, `npm run test:e2e`.
-5. Open a PR and fill in the template, including "What did you learn?" (useful viva preparation).
-6. At least one teammate reviews it, ideally the assigned reviewer.
-7. Squash-merge, then delete the branch.
-
-```bash
-git switch main && git pull
-git switch -c feat/my-change
-# …edit, test…
-git add -A && git commit -m "feat(scope): describe the change"
-git push -u origin feat/my-change    # then open a pull request on GitHub
-```
+1. Never work directly on `main`. Make a branch: `git switch -c feature/reminder-emails`.
+2. Commit small steps with clear messages: `git commit -m "Add deadline filter to saved page"`.
+3. Push and open a **pull request**. Fill in the template, including "What did you learn?".
+4. A teammate reviews it, and the CI checks must pass before merging.
+5. Ask the repository owner to turn on **branch protection** for `main` (Settings → Branches).
 
 ---
 
-## 13. Development roadmap
+## 12. Viva quiz preparation
 
-| Phase | Milestone                                                                 | Status                              |
-| ----- | ------------------------------------------------------------------------- | ----------------------------------- |
-| 1     | Requirements and proposal                                                 | ✅ Done                             |
-| 2     | Foundation: tooling, design system, data model, CI                        | ✅ Done                             |
-| 3     | Core: search, details, events, organizations, saved items, preferences    | ✅ Done                             |
-| 4     | Advanced: recommendations, clash detection, `.ics`, role demos, analytics | ✅ Done                             |
-| 5     | Quality: unit, integration, e2e and accessibility tests                   | ✅ Done (continue as features grow) |
-| 6     | Documentation and team readiness                                          | ✅ This README                      |
-| 7     | **Team**: run the survey and interviews, and report real findings         | 📋 Next                             |
-| 8     | **Team**: each member extends their module (see ideas below)              | 📋 Next                             |
-| 9     | Decide on a secure backend (accounts, roles, database)                    | 📋 Decision needed                  |
-| 10    | Record the 15-minute video, then submit                                   | 📋                                  |
+Everyone should be able to explain **the whole system**, not only their own part. Each topic below
+says **what it is**, **why we use it** and **where to find it in the code**.
 
-**Extension ideas, one per member:** in-app deadline reminders with configurable lead times (3);
-a week view or "free time" finder in the calendar (4); a dark theme (2); a CSV import for
-organization events with validation (5); a deployment pipeline (1).
+### 12.1 The tech stack
+
+| Technology      | What it is, in one sentence                                                             | Why we chose it                                                                    |
+| --------------- | --------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------- |
+| **HTML**        | The structure of a page (headings, lists, forms).                                        | Every page is real HTML, so it works in any browser and with screen readers.       |
+| **CSS**         | Rules for how the HTML looks (colours, spacing, layout).                                 | One file, `app.css`, using CSS variables, Flexbox, Grid and media queries.         |
+| **JavaScript**  | Code that runs in the browser.                                                           | Used only for small extras (menu button, instant filters, confirm dialogs). The site works without it. |
+| **PHP 8.2**     | A language that runs **on the server** and builds the HTML before it is sent.           | It is taught in the course, runs everywhere, and needs no build step.              |
+| **MySQL 8**     | A relational database: data in tables linked by keys, queried with SQL.                 | Reliable, free, included in AMPPS, and the standard partner of PHP.                |
+| **PDO**         | PHP's built-in library for talking to databases.                                         | Supports prepared statements, which protect against SQL injection.                 |
+| **Apache**      | The web server that receives requests and runs our PHP files.                            | Included in AMPPS and in the Docker image; `.htaccess` lets us protect folders.    |
+| **AMPPS**       | A Windows/Mac package that installs Apache, MySQL, PHP and phpMyAdmin together.         | Easy local setup, already familiar from class.                                     |
+| **Docker**      | Runs software in "containers" with the exact same setup on every computer.               | One command gives every teammate the same PHP, Apache and MySQL versions.          |
+| **phpMyAdmin**  | A web page for looking at and editing a MySQL database.                                 | Handy for importing the SQL files and checking data during development.            |
+| **Composer**    | PHP's package manager.                                                                   | Only used to install PHPUnit for testing; the app itself has no dependencies.      |
+| **PHPUnit**     | PHP's standard testing tool.                                                             | Runs our 77 automated tests.                                                       |
+| **Git & GitHub**| Version control and online hosting for the code.                                          | Branches, pull requests, code review and history.                                  |
+| **GitHub Actions** | Runs our tests automatically on GitHub's computers.                                   | Every pull request is checked before it is merged (`.github/workflows/ci.yml`).    |
+
+**Why no framework (such as Laravel)?** Frameworks save time, but they hide a lot of behaviour
+behind conventions ("magic"). Plain PHP shows every step: the request, the SQL, the HTML. That is
+easier to explain in the viva and easier for beginners to follow.
+
+### 12.2 How the web works
+
+- **Client and server.** The browser (client) asks for a page. The server (Apache + PHP) builds
+  the HTML and sends it back. PHP code never reaches the browser, only its output.
+- **HTTP request and response.** A request has a method (`GET`/`POST`), a URL and headers. A
+  response has a status code (`200 OK`, `302 Found` redirect, `403 Forbidden`, `404 Not Found`,
+  `500 Server Error`), headers and a body (the HTML).
+- **GET vs POST.** `GET` *reads* (search, open a page); its values are in the URL, so they can be
+  bookmarked. `POST` *changes* data (save, sign in); its values are in the request body. We never
+  change data with GET.
+- **Query string.** In `event.php?id=5`, the part after `?` holds values that PHP reads from `$_GET`.
+- **Status codes in our app:** missing items return 404 (`templates/not-found.php`), wrong roles
+  return 403 (`templates/forbidden.php`), and unexpected errors return 500 (`templates/error.php`).
+
+### 12.3 PHP concepts used
+
+- **`require`** loads another PHP file. Every page starts with `require .../src/bootstrap.php`.
+- **Functions** group steps under a name (`get_events()`, `recommend()`). Pure logic is kept apart
+  from the database and the HTML, so it can be tested on its own.
+- **Associative arrays** are how rows come back from MySQL: `$event['title']`.
+- **Superglobals:** `$_GET` (URL values), `$_POST` (form values), `$_SESSION` (data remembered
+  between requests), `$_SERVER` (request details).
+- **Mixing PHP and HTML:** `<?= e($event['title']) ?>` prints a value; `<?php foreach (...): ?> … <?php endforeach; ?>` repeats HTML.
+- **`DateTimeImmutable`** represents dates; "immutable" means methods return a *new* date
+  instead of changing the old one, which prevents surprising bugs.
+- **Closures / arrow functions:** `fn ($e) => $e['status'] === 'published'` is a small unnamed
+  function, used with `array_filter` and `usort`.
+- **The spaceship operator `<=>`** returns -1, 0 or 1 and is used for sorting (`src/recommend.php`).
+
+### 12.4 Database concepts
+
+- **Table, row, column.** One table per kind of thing; one row per item.
+- **Primary key:** a column that uniquely identifies a row (`id`).
+- **Foreign key:** a column pointing at another table's primary key (`events.organization_id → organizations.id`).
+  MySQL refuses data that points at nothing.
+- **One-to-many:** one organization has many events.
+- **Many-to-many:** an event has many interests and an interest belongs to many events. This needs a
+  **join table** (`event_interests`).
+- **JOIN:** combines tables in one query, e.g. events with their organization's name (`src/data/events.php`).
+- **ENUM:** a column that only accepts listed values (`status ENUM('published','pending','rejected')`).
+- **Index:** like a book index; it makes searches by that column fast.
+- **Transaction:** several changes that succeed or fail **together** (`create_event()` inserts the
+  event and its interests; if one fails, `rollBack()` undoes both).
+- **`ON DELETE CASCADE`:** deleting a parent row deletes its dependent rows automatically.
+
+### 12.5 Security concepts
+
+See the [Security table](#9-security). Be ready to explain these with code:
+
+- **SQL injection and prepared statements.** Unsafe: `"... WHERE email = '$email'"`. If `$email` is
+  `' OR '1'='1`, the query changes meaning. Safe: `prepare('... WHERE email = ?')` then
+  `execute([$email])`; the value is sent separately and can never become SQL.
+- **XSS and escaping.** `e()` turns `<` into `&lt;`, so `<script>` is shown as text instead of running.
+- **CSRF tokens.** A random secret in the session, copied into each form; `verify_csrf()` compares them.
+- **Hashing vs encryption.** Hashing is one-way: we can check a password but never recover it.
+  bcrypt adds a random **salt**, so two equal passwords get different hashes, and it is deliberately
+  slow, which makes guessing expensive.
+- **Authentication vs authorization.** *Authentication* = who are you (sign-in). *Authorization* =
+  what are you allowed to do (`require_role()`, ownership checks). Both happen on the server.
+- **Sessions and cookies.** The browser only holds a random session ID in a cookie; the data
+  (`user_id`) stays on the server. `HttpOnly` stops JavaScript reading the cookie.
+
+### 12.6 Patterns and front-end concepts
+
+- **Post/Redirect/Get (PRG).** After a POST we redirect, so Refresh never resubmits the form (`public/toggle.php`).
+- **Flash messages.** A one-time message stored in the session and shown on the next page (`flash()` / `take_flash()`).
+- **Separation of concerns.** `public/` = pages, `src/data/` = SQL, `src/*.php` = logic, `templates/` = shared HTML.
+- **Progressive enhancement.** Everything works with plain links and forms; `app.js` only improves it.
+- **Responsive design.** One HTML page adapts with CSS **media queries**: three columns on desktop,
+  one on phones, and a menu button below 1080px.
+- **Accessibility.** Semantic HTML (headings, lists, `<nav>`, `<label>`), a skip link, visible focus
+  outlines, `aria-pressed` on toggle buttons, `aria-invalid` and error messages linked to fields,
+  charts with a table version, and text contrast of at least 4.5:1.
+
+### 12.7 The algorithms
+
+**Recommendations (`src/recommend.php`)**: points per rule.
+
+| Rule                                     | Points        |
+| ---------------------------------------- | ------------- |
+| Each shared interest (max 3)             | +3 each       |
+| From an organization you follow          | +2            |
+| Same category as something you saved     | +1            |
+| Deadline 3–14 days away                  | +2            |
+| Deadline 0–2 or 15–30 days away          | +1            |
+| Event within 7 days / 8–14 days          | +2 / +1       |
+| No eligibility information               | −1            |
+
+Steps: keep only published, open, unsaved items → score each → keep items that match an interest or
+a followed club → sort by score, then soonest date, then title. It is **deterministic**: the same
+data always gives the same order. It is **not machine learning**: the weights were chosen by us.
+
+**Search (`src/search.php`)**
+1. Normalise text: lowercase, remove accents and punctuation, drop common words ("the", "and").
+2. For each typed word, find the best match in each field.
+   Field weights: title ×3, organization/provider ×2, tags ×2, description ×1.
+   Match quality: exact 1.0, start of a word 0.7, one-letter typo 0.4 (`levenshtein() <= 1`).
+3. Every typed word must match somewhere, otherwise the item is skipped.
+4. +3 bonus if the whole search appears in the title. Then sort.
+
+**Clash detection (`src/schedule.php`)**
+Two events clash when `A.start < B.end AND B.start < A.end`. Back-to-back events do not clash.
+Sort by start time and sweep through the list, keeping the events that are "still running".
+Each new event clashes with every running one.
+
+**Deadline buckets (`src/deadlines.php`)**: calendar days between now and the deadline, in the
+Accra time zone. 23:00 Monday to 01:00 Tuesday counts as 1 day, not 0.
+
+**Calendar export (`src/ics.php`)**: the iCalendar text format (RFC 5545). Special characters are
+escaped, long lines are "folded" at 75 bytes, and deadlines become all-day entries.
+
+### 12.8 Testing concepts
+
+- **Unit test:** checks one function with made-up data, e.g. `find_clashes()` with three events.
+- **Feature test:** runs the real website (PHP's built-in server plus a test database) and acts like a
+  browser: sign in, submit forms, check the HTML and status codes.
+- **Why both?** Unit tests are fast and pinpoint logic bugs. Feature tests prove the pieces work
+  together, including security rules such as "a student gets 403 on `admin.php`".
+- **Continuous Integration (CI):** GitHub runs all tests on every pull request.
+
+### 12.9 Practice questions (with short answers)
+
+1. **What happens, file by file, when a student clicks "Save" on an opportunity?**
+   The button's form POSTs to `toggle.php`. It checks the CSRF token and sign-in, checks the item
+   exists, then `toggle_link()` inserts or deletes the `saved_opportunities` row. A flash message
+   is set and the student is redirected back (PRG).
+2. **How do you stop SQL injection?** Prepared statements with `?` placeholders (`src/database.php`).
+3. **A student changes the URL to `manage-event.php?id=4`. What stops them?**
+   `require_role('org_rep')` returns 403. An org rep editing another club's event gets 404 because
+   the query also requires `organization_id = ?`.
+4. **Why is `logout.php` POST-only?** So another website cannot sign you out with a simple link
+   or image (that would be CSRF).
+5. **Why do we store `password_hash` instead of the password?** If the database leaks, the
+   passwords are still unknown. bcrypt is slow and salted.
+6. **Two events: 17:00–18:00 and 18:00–19:00. Clash?** No: `17:00 < 19:00` is true, but
+   `18:00 < 18:00` is false.
+7. **Why are join tables needed?** Interests are many-to-many; a single column cannot hold a list properly.
+8. **What is a transaction, and where do we use one?** In `create_event()` and `update_event()`,
+   so an event is never saved without its interests.
+9. **Why does `scholarshp` still find "scholarship"?** The words are one edit apart (`levenshtein`),
+   so they count as a typo match worth 0.4 × the field weight.
+10. **What does `e()` do and why is it everywhere?** It escapes HTML special characters to prevent XSS.
+11. **How would you add a "salary" filter?** Add a column in `schema.sql`, include it in
+    `build_search_index()`, read it in `read_explore_filters()`, add a field to the form in
+    `explore.php`, and write a test.
+12. **How does the same code run on AMPPS and Docker?** Settings come from defaults,
+    `config.local.php` or environment variables, and `url()` builds links from the current folder.
+13. **What is the difference between authentication and authorization?** Who you are vs what you may do.
+14. **Why does the app still work with JavaScript turned off?** All features are links and forms
+    handled on the server; JavaScript only adds conveniences.
+15. **What would you change for thousands of opportunities?** Use MySQL `FULLTEXT` indexes or a
+    search service instead of scoring everything in PHP, and add pagination.
 
 ---
 
-## 14. Testing
+## 13. Presentation and demo plan
 
-### Strategy
+A suggested 15-minute plan. Show only working features, and give every member at least two minutes.
 
-| Level         | Tool                           | What it covers                                                                                                                                                                                                                                                | Count                  |
-| ------------- | ------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------- |
-| Unit          | Vitest                         | Recommendation scoring, search ranking and typo tolerance, URL parsing, deadlines, time zones, clash detection, month grid, `.ics`, form validation, fixture validity and colour contrast, repository reliability, localStorage safety, moderation, analytics | 69                     |
-| Integration   | Vitest + Testing Library       | Interests change recommendations; saving updates the saved view; clashes shown; live preview; form errors and focus; valid form output                                                                                                                        | 6                      |
-| End-to-end    | Playwright (desktop + Pixel 7) | Search to details; filters; save to saved/dashboard; recommendations persist; calendar clashes; follow; org rep submits and admin approves; 404; mobile menu; no horizontal scroll                                                                            | 10 tests × 2 viewports |
-| Accessibility | Playwright + axe-core          | WCAG 2.2 A/AA rules on 14 pages plus the admin and manage demo states                                                                                                                                                                                         | 15 tests × 2 viewports |
+| Time  | Segment                                                                                         | Presenter |
+| ----- | ----------------------------------------------------------------------------------------------- | --------- |
+| 0–2   | The problem and **real** survey results                                                         | Member 1  |
+| 2–4   | Tour as a guest: home, search with a typo, filters, event and organization pages                | Member 2  |
+| 4–7   | Sign in as a student: choose interests, explained recommendations, save items, deadline groups | Member 3  |
+| 7–9   | Calendar: save two clashing events, see the warning, export the `.ics` file                     | Member 4  |
+| 9–11  | Org rep submits an event (show validation errors first); admin sees hints, approves, and the event goes public; analytics | Member 5 |
+| 11–13 | Architecture: request flow, database diagram, prepared statements, CSRF, roles; run the tests   | Members 1 & 5 |
+| 13–15 | Accessibility, limitations, next steps                                                          | Member 2 & all |
 
-### Results from the last run (18 November 2026, Windows 11, Node 24.18)
-
-- `npm run lint`: passed, 0 problems
-- `npm run typecheck`: passed
-- `npm test`: **75 / 75 passed** (7 files)
-- `npm run build`: passed
-- `npm run test:e2e`: **49 passed, 1 skipped** (the mobile-menu test only runs on the mobile viewport)
-- `npm audit --omit=dev`: **0 vulnerabilities** in production dependencies
-- `npm audit` (including dev tools): 17 "high" findings, all from one transitive package
-  (`picomatch` ReDoS, via ESLint, Vite and Vitest). No fixed version has been published yet. They
-  affect only local tooling that processes our own trusted file patterns, not the deployed app.
-  Re-check regularly.
-
-### Known testing limitations
-
-- Automated accessibility tools find only part of the issues. **Manual checks are still needed:**
-  keyboard-only navigation through every page, a screen-reader pass (NVDA on Windows or VoiceOver
-  on macOS/iOS) and 200% zoom.
-- Only Chromium is tested automatically. Check Firefox and Safari manually before the demo.
-- No performance budget is enforced yet. Run Lighthouse on the production build and record the
-  real numbers rather than estimating them.
-- **Windows:** `npm test` runs through `scripts/vitest.mjs`, which fixes a problem where terminals
-  opened with a lower-case drive letter (`c:\…`) make Vitest fail with "failed to find the
-  current suite".
+Before recording: `docker compose down -v && docker compose up` for fresh sample dates.
 
 ---
 
-## 15. Viva quiz preparation
+## 14. Submission checklist
 
-Everyone should be able to explain the **whole** system, not just their own part. Study these in order:
-
-1. **Request flow:** how `/explore?q=data` becomes HTML (server component, `searchParams`,
-   repository, search engine, cards), and which parts become client JavaScript.
-2. **Server vs client components:** why `DashboardView` needs `"use client"` and `cards.tsx` does not.
-3. **State:** URL vs localStorage vs React state; why `useSyncExternalStore`; what
-   `getServerSnapshot` prevents.
-4. **Validation:** where Zod is used (fixtures, URL, storage, forms) and why client validation
-   is not security.
-5. **The recommender:** the rules in `weights.ts`, the relevance gate, deterministic tie-breaking,
-   and why it is not machine learning.
-6. **Search:** tokenising, stop words, field weights, prefix and one-edit typo matching, AND
-   semantics, phrase bonus.
-7. **Time:** UTC storage vs Accra display; calendar days vs 24-hour periods.
-8. **Clash detection:** the overlap condition and the sweep-line algorithm (O(n log n + k)).
-9. **Security:** XSS (React escaping), `noopener noreferrer`, https-only links, security headers,
-   why demo roles are not authorization.
-10. **Testing:** the testing pyramid here, and what each level catches.
-
-### Practice questions
-
-1. Walk through what happens, file by file, when a student ticks "Research" on the dashboard.
-2. Two items have the same score. Which ranks first, and where is that decided?
-3. Why are dates in the fixtures relative (`deadlineInDays`)? What would break with absolute dates?
-4. A user edits localStorage and sets `"role": "superuser"`. What happens, and why?
-5. Event A runs 17:00–18:00 and event B 18:00–19:00. Do they clash? Show the condition.
-6. Why does `/explore` render on every request while `/dashboard` is prerendered?
-7. How would you add a "salary" filter for internships? Which files change?
-8. Someone stores `javascript:alert(1)` as an opportunity link. Which two layers stop it?
-9. What would change in the architecture to support real accounts and organization ownership?
-10. Why does the search filter form still work with JavaScript disabled?
-11. What does `revalidate = 3600` mean, and why did we choose it?
-12. How does the `.ics` export represent a deadline, and why is line folding needed?
-13. Why is moving focus to the first invalid field important, and how is it implemented?
-14. What does the integration test for saving prove that a unit test cannot?
-15. Explain one bug found during development and how a test now prevents it. (Example: the
-    contrast failures on organization colours, now enforced by a unit test.)
+- [ ] Video (≤ 15 minutes) uploaded to **OneDrive**, shared so the lecturer can open it
+- [ ] OneDrive link submitted on **Canvas**
+- [ ] Code in the **public GitHub repository**
+- [ ] GitHub link submitted on **klenam.ai**
+- [ ] All tests pass and CI is green on `main`
+- [ ] README updated with real survey results and team names
+- [ ] Every member has read the whole codebase and practised the viva questions
+- [ ] Demo accounts and passwords reviewed
 
 ---
 
-## 16. Presentation and demo plan
+## 15. AI assistance and academic responsibility
 
-A suggested structure for the 15-minute video. Show only implemented features, and give each
-member at least two minutes on their own area.
+This codebase was produced with AI assistance (Anthropic's Claude, acting as a coding agent). That
+includes the original Next.js prototype and this PHP/MySQL rewrite, the tests and this README. The
+course brief allows responsible AI use.
 
-| Time  | Segment                                                                                                                                  | Presenter      |
-| ----- | ---------------------------------------------------------------------------------------------------------------------------------------- | -------------- |
-| 0–2   | The problem and **real** survey and interview findings                                                                                   | Member 1       |
-| 2–4   | The solution, target users and a home page tour                                                                                          | Member 2       |
-| 4–6   | Search: a typo ("scholarshp"), filters, the URL that preserves state, the empty state                                                    | Member 3       |
-| 6–8   | Pick interests, show recommendations with point breakdowns, change an interest and show the re-ranking, open the About rules             | Member 3       |
-| 8–10  | Save two clashing events, see the calendar warning, export `.ics` and open it in a calendar app; show deadline urgency groups            | Member 4       |
-| 10–11 | Org rep demo: show validation errors, then submit; admin demo: moderation hints, approve, analytics (state clearly that these are demos) | Member 5       |
-| 11–13 | Architecture diagram, code walkthrough of `score.ts` and `schedule.ts`, the test suite and CI                                            | Members 1 & 5  |
-| 13–15 | Accessibility and security measures, honest limitations, and next steps (backend, reminders)                                             | Member 2 & all |
-
-**Before recording:** run `npm run build && npm run start`, use a fresh browser profile, and
-rehearse with a timer.
-
----
-
-## 17. Submission checklist
-
-- [ ] Video (≤ 15 minutes) uploaded to **OneDrive**, sharing set so the lecturer can open it
-- [ ] The OneDrive video link submitted on **Canvas**
-- [ ] Source code in a **public GitHub repository**
-- [ ] The GitHub repository link submitted on **klenam.ai**
-- [ ] `npm run check` and `npm run test:e2e` pass on `main`; CI is green
-- [ ] README updated: real survey results, final feature status, team names
-- [ ] Every member has reviewed the whole codebase and practised the viva questions
-- [ ] Re-read the official brief for any requirement not covered here
-
----
-
-## 18. AI assistance and academic responsibility
-
-This codebase was **initially generated with AI assistance** (Anthropic's Claude, acting as a
-coding agent). That included the proposal, scaffolding, implementation, tests and this README.
-The lecturer's brief permits responsible AI-assisted development.
-
-The team is responsible for everything submitted. Concretely, every member is expected to:
+The team is responsible for everything submitted. Each member should:
 
 - read and understand the code in their area **and** the overall architecture;
-- be able to modify, debug and extend it without AI help;
+- be able to change, debug and extend it without AI help;
 - check every claim in this README against the running application;
-- record their own contributions in commits and pull requests.
-
-If any part of the code cannot be explained by the team, it should be simplified or rewritten
-before submission.
+- simplify or rewrite any part the team cannot explain.
 
 ---
 
-## 19. Known limitations
+## 16. Known limitations
 
-- **No backend.** All personal data stays in one browser. There is no cross-device sync and
-  nothing is shared between users.
-- **Demo roles are not secure.** Anyone can switch to "Administrator" or "Organization rep".
-  Those areas change only the current browser's data and never the public catalogue.
-- **Event interest is not registration.** Capacity is shown but not enforced.
-- **Sample data only.** All content is fictional. Analytics describe the sample catalogue, not
-  real usage.
-- **Recommendations are rule-based**, with fixed weights chosen by the team, not learned from data.
-- **Search is in-memory**, which is fine for hundreds of items. Thousands would need database
-  full-text search.
-- **Hypotheses are unvalidated** until the team completes the survey and interviews.
-- **Time zone:** the app assumes Africa/Accra. Supporting other campuses means making the zone
-  configurable.
+- **No email features yet:** no password reset or deadline reminder emails.
+- **"I'm interested" is not a reservation:** capacity is shown but not enforced.
+- **Sample data only:** everything in `seed.sql` is fictional, and analytics describe that sample content.
+- **Recommendations are rule-based:** the weights were chosen by the team, not learned from data.
+- **Search runs in PHP memory:** fine for hundreds of items; thousands would need MySQL full-text search.
+- **One campus time zone (Africa/Accra):** supporting other campuses means making it configurable.
+- **Sign-in throttling is per browser session:** a determined attacker could bypass it by
+  discarding cookies. A real deployment should also limit attempts per account or IP address.
+- **Hypotheses are unvalidated** until the survey and interviews are done.
 
 ---
 
-## 20. License
+## 17. License
 
-No license has been chosen yet, so all rights are reserved by the authors by default. The five
-team members should agree on a license (for example MIT) before adding a `LICENSE` file.
+No license has been chosen yet, so all rights are reserved by the authors by default. The five team
+members should agree on a license (for example MIT) before adding a `LICENSE` file.

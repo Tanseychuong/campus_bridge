@@ -1,0 +1,12 @@
+# Apache settings for the public folder (used by AMPPS and Docker).
+
+# Do not list folder contents.
+Options -Indexes
+
+# Open index.php when a folder is requested.
+DirectoryIndex index.php
+
+# Never serve hidden files such as .htaccess or .env.
+<FilesMatch "^\.">
+    Require all denied
+</FilesMatch>
