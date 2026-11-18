@@ -1,5 +1,5 @@
 # Runs on every pull request and every push to main.
-# No secrets are needed: the app uses fictional sample data only.
+# It uses a throw-away MySQL server; no real secrets are needed.
 name: CI
 
 on:
@@ -10,37 +10,49 @@ on:
 permissions:
   contents: read
 
-concurrency:
-  group: ci-${{ github.ref }}
-  cancel-in-progress: true
-
 jobs:
-  quality:
-    name: Lint, typecheck, unit tests, build, e2e
+  test:
+    name: PHP syntax, unit + feature tests, Docker build
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 15
+
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: ci-only-password
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -pci-only-password"
+          --health-interval=5s --health-timeout=5s --health-retries=30
+
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+
+      - name: Set up PHP 8.2 (same version as AMPPS)
+        uses: shivammathur/setup-php@v2
         with:
-          node-version: 22
-          cache: npm
-      - run: npm ci
-      - run: npm run format:check
-      - run: npm run lint
-      - run: npm run typecheck
-      - run: npm test
-      - run: npm run build
-      - run: npx playwright install --with-deps chromium
-      - run: npm run test:e2e
-      - name: Upload Playwright report on failure
-        if: failure()
-        uses: actions/upload-artifact@v4
-        with:
-          name: playwright-report
-          path: |
-            playwright-report/
-            test-results/
-          retention-days: 7
-      - name: Dependency audit (production dependencies)
-        run: npm audit --omit=dev --audit-level=high
+          php-version: "8.2"
+          extensions: pdo_mysql, mbstring, curl, zip, fileinfo
+          tools: composer
+
+      - name: Install test tools (PHPUnit)
+        run: composer install --no-interaction --no-progress
+
+      - name: Check every PHP file for syntax errors
+        run: find src templates public tests bin -name '*.php' -print0 | xargs -0 -n1 php -l > /dev/null
+
+      - name: Run all tests
+        env:
+          TEST_DB_HOST: 127.0.0.1
+          TEST_DB_PORT: "3306"
+          TEST_DB_USER: root
+          TEST_DB_PASSWORD: ci-only-password
+        run: vendor/bin/phpunit
+
+      - name: Check Composer packages for known vulnerabilities
+        run: composer audit
+
+      - name: Check that the Docker image builds
+        run: docker build -f docker/Dockerfile -t campusbridge-ci .

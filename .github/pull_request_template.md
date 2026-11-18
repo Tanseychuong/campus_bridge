@@ -1,13 +1,12 @@
 ## What does this change?
 
-<!-- One or two sentences. Link the issue if there is one. -->
+<!-- One or two sentences. -->
 
 ## How did you test it?
 
-- [ ] `npm run check` passes locally (lint, typecheck, unit tests, build)
-- [ ] `npm run test:e2e` passes, or explain why it was not run
-- [ ] Checked on a phone-sized screen
-- [ ] Checked keyboard navigation for any new interactive element
+- [ ] `vendor/bin/phpunit` passes (or explain why not)
+- [ ] Opened the changed pages in a browser, including on a phone-sized window
+- [ ] Every printed value uses `e()`, every query uses `?` placeholders, every POST form has `csrf_field()`
 
 ## What should the reviewer look at?
 

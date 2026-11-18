@@ -1,0 +1,79 @@
+# CampusBridge with Docker — start everything with:  docker compose up --build
+#
+#   Website     http://localhost:8080
+#   phpMyAdmin  http://localhost:8081   (user: root, password: campusbridge-dev)
+#
+# The passwords below are for LOCAL DEVELOPMENT ONLY. Never reuse them on a real server.
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+    ports:
+      - "8080:80"
+    environment:
+      DB_HOST: db
+      DB_PORT: "3306"
+      DB_NAME: campus_bridge
+      DB_USER: root
+      DB_PASSWORD: campusbridge-dev
+      APP_DEBUG: "1"
+    volumes:
+      # Your code is shared with the container, so edits show up after a page refresh.
+      - ./:/var/www/html
+    depends_on:
+      db:
+        condition: service_healthy
+
+  # Background worker: scans uploaded resources for possible privacy and copyright problems.
+  # Same image and code as the website; it just runs a different command.
+  worker:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+    command: ["php", "bin/scan-worker.php"]
+    working_dir: /var/www/html
+    user: www-data
+    environment:
+      DB_HOST: db
+      DB_PORT: "3306"
+      DB_NAME: campus_bridge
+      DB_USER: root
+      DB_PASSWORD: campusbridge-dev
+    volumes:
+      - ./:/var/www/html
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: unless-stopped
+
+  db:
+    image: mysql:8.0
+    environment:
+      MYSQL_ROOT_PASSWORD: campusbridge-dev
+      MYSQL_DATABASE: campus_bridge
+    ports:
+      - "3307:3306"   # 3307 on your computer, so it does not clash with AMPPS MySQL on 3306
+    volumes:
+      # On the FIRST start, MySQL runs these files in alphabetical order.
+      - ./database/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql:ro
+      - ./database/seed.sql:/docker-entrypoint-initdb.d/02-seed.sql:ro
+      - db-data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-uroot", "-pcampusbridge-dev"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+
+  phpmyadmin:
+    image: phpmyadmin:5
+    ports:
+      - "8081:80"
+    environment:
+      PMA_HOST: db
+    depends_on:
+      - db
+
+volumes:
+  db-data:
