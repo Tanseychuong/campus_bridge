@@ -19,11 +19,11 @@ function find_user_by_email(string $email): ?array
  * password_hash() turns the password into a one-way bcrypt hash (with a random
  * "salt"), so even someone who reads the database cannot see the password.
  */
-function create_student_account(string $name, string $email, string $password): int
+function create_student_account(string $name, string $email, string $password, int $campusId): int
 {
     execute(
-        "INSERT INTO users (name, email, password_hash, role) VALUES (?, ?, ?, 'student')",
-        [$name, mb_strtolower(trim($email)), password_hash($password, PASSWORD_DEFAULT)]
+        "INSERT INTO users (name, email, password_hash, role, campus_id) VALUES (?, ?, ?, 'student', ?)",
+        [$name, mb_strtolower(trim($email)), password_hash($password, PASSWORD_DEFAULT), $campusId]
     );
     return (int) db()->lastInsertId();
 }

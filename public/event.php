@@ -63,6 +63,7 @@ require __DIR__ . '/../templates/header.php';
                     <div><dt>When</dt><dd><?= e(format_event_range($e['starts_at'], $e['ends_at'])) ?> (Accra time)</dd></div>
                     <div><dt>Venue</dt><dd><?= e($e['venue']) ?></dd></div>
                     <div><dt>Capacity</dt><dd><?= e($e['capacity'] ? $e['capacity'] . ' people' : 'No limit') ?></dd></div>
+                    <div><dt>Open to</dt><dd><?= e($e['visibility'] === 'campus' ? $e['campus_name'] . ' students only' : 'Students from every campus') ?></dd></div>
                     <div><dt>Registration</dt><dd><?= e($e['registration'] === 'rsvp' ? 'RSVP required' : 'Open entry — just turn up') ?></dd></div>
                     <div><dt>Contact</dt><dd class="break-all"><?= e($e['contact']) ?></dd></div>
                 </dl>

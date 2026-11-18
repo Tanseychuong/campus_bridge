@@ -120,22 +120,22 @@ function toggle_button(string $kind, int $id, string $title, bool $isOn, string 
  * Cards
  * ------------------------------------------------------------------ */
 
+/*
+ * Cards are kept deliberately short: a label, the title, who it is from and
+ * one key fact. Everything else lives on the detail page, one click away.
+ */
+
 function opportunity_card(array $opportunity, DateTimeImmutable $now, array $profile): void
 {
     $o = $opportunity;
     $isSaved = in_array((int) $o['id'], $profile['saved_opportunity_ids'], true);
     ?>
     <article class="card item-card">
-        <div class="badge-row">
-            <?= badge(OPPORTUNITY_CATEGORIES[$o['category']], 'brand') ?>
-            <?= deadline_badge($o['deadline'], $now) ?>
-        </div>
+        <p class="card-kicker"><?= e(OPPORTUNITY_CATEGORIES[$o['category']]) ?></p>
         <h3 class="card-title"><a href="<?= e(url('opportunity.php', ['id' => $o['id']])) ?>"><?= e($o['title']) ?></a></h3>
         <p class="card-subtitle"><?= e($o['provider']) ?></p>
-        <p class="card-text"><?= e($o['summary']) ?></p>
-        <p class="card-meta"><?= e(LOCATION_MODES[$o['location_mode']] . ($o['location_place'] ? ' · ' . $o['location_place'] : '')) ?></p>
         <div class="card-footer">
-            <span class="muted small"><?= e($o['deadline'] ? 'Deadline ' . format_date($o['deadline'], 'j M Y') : 'Rolling applications') ?></span>
+            <?= deadline_badge($o['deadline'], $now) ?>
             <?= toggle_button('opportunity', (int) $o['id'], $o['title'], $isSaved) ?>
         </div>
     </article>
@@ -148,15 +148,14 @@ function event_card(array $event, array $profile): void
     $isSaved = in_array((int) $e['id'], $profile['saved_event_ids'], true);
     ?>
     <article class="card item-card">
-        <div class="badge-row"><?= badge(EVENT_CATEGORIES[$e['category']], 'gold') ?></div>
+        <p class="card-kicker">
+            <?= e(EVENT_CATEGORIES[$e['category']]) ?>
+            <?php if (($e['visibility'] ?? 'public') === 'campus'): ?><span class="campus-only"><?= e($e['campus_name']) ?> only</span><?php endif; ?>
+        </p>
         <h3 class="card-title"><a href="<?= e(url('event.php', ['id' => $e['id']])) ?>"><?= e($e['title']) ?></a></h3>
         <p class="card-subtitle"><?= e($e['organization_name']) ?></p>
-        <p class="card-when"><?= e(format_event_range($e['starts_at'], $e['ends_at'])) ?></p>
-        <p class="card-meta"><?= e($e['venue']) ?></p>
         <div class="card-footer">
-            <span class="muted small">
-                <?= e(($e['capacity'] ? $e['capacity'] . ' places' : 'No capacity limit') . ' · ' . ($e['registration'] === 'rsvp' ? 'RSVP required' : 'Open entry')) ?>
-            </span>
+            <span class="card-when"><?= e(format_event_range($e['starts_at'], $e['ends_at'])) ?></span>
             <?= toggle_button('event', (int) $e['id'], $e['title'], $isSaved) ?>
         </div>
     </article>
@@ -173,48 +172,66 @@ function organization_card(array $organization, array $profile): void
             <?= org_avatar($org) ?>
             <div>
                 <h3 class="card-title"><a href="<?= e(url('organization.php', ['id' => $org['id']])) ?>"><?= e($org['name']) ?></a></h3>
-                <p class="muted small"><?= e(ORGANIZATION_CATEGORIES[$org['category']]) ?></p>
+                <p class="card-subtitle"><?= e(ORGANIZATION_CATEGORIES[$org['category']] . (isset($org['campus_name']) ? ' · ' . $org['campus_name'] : '')) ?></p>
             </div>
         </div>
-        <p class="card-text"><?= e($org['summary']) ?></p>
-        <div class="badge-row">
-            <?php foreach ($org['interests'] as $interest): ?><?= badge(INTEREST_LABELS[$interest]) ?><?php endforeach; ?>
-        </div>
-        <div class="card-footer">
-            <span class="muted small"><?= (int) $org['member_count'] ?> members (sample)</span>
+        <p class="card-text clamp-2"><?= e($org['summary']) ?></p>
+        <div class="card-footer card-footer-end">
             <?= toggle_button('organization', (int) $org['id'], $org['name'], $isFollowing) ?>
         </div>
     </article>
     <?php
 }
 
-/** A recommended item together with the reasons it was recommended. */
+/** A recommended item. The main reason is shown; the full score breakdown is one click away. */
 function recommendation_card(array $recommendation, DateTimeImmutable $now): void
 {
     $item = $recommendation['item'];
     $isOpportunity = $recommendation['type'] === 'opportunity';
     $link = $isOpportunity ? url('opportunity.php', ['id' => $item['id']]) : url('event.php', ['id' => $item['id']]);
+    $reasons = $recommendation['reasons'];
     ?>
     <article class="card item-card recommendation" data-testid="recommendation">
-        <div class="badge-row">
-            <?= $isOpportunity ? badge(OPPORTUNITY_CATEGORIES[$item['category']], 'brand') : badge(EVENT_CATEGORIES[$item['category']], 'gold') ?>
-            <span class="muted small"><?= e($isOpportunity ? deadline_label($item['deadline'], $now) : format_event_range($item['starts_at'], $item['ends_at'])) ?></span>
-        </div>
+        <p class="card-kicker"><?= e($isOpportunity ? OPPORTUNITY_CATEGORIES[$item['category']] : EVENT_CATEGORIES[$item['category']]) ?></p>
         <h3 class="card-title"><a href="<?= e($link) ?>"><?= e($item['title']) ?></a></h3>
         <p class="card-subtitle"><?= e($isOpportunity ? $item['provider'] : $item['organization_name']) ?></p>
-        <div class="why-box">
-            <p class="why-title">Why this is recommended <span class="score">score <?= (int) $recommendation['score'] ?></span></p>
-            <ul class="why-list">
-                <?php foreach ($recommendation['reasons'] as $reason): ?>
-                    <li>
-                        <span><?= e($reason['text']) ?></span>
-                        <strong class="<?= $reason['points'] < 0 ? 'text-danger' : 'text-brand' ?>"><?= $reason['points'] > 0 ? '+' . $reason['points'] : $reason['points'] ?></strong>
-                    </li>
-                <?php endforeach; ?>
-            </ul>
-        </div>
+        <?php if ($reasons !== []): ?>
+            <details class="why-box">
+                <summary><?= e($reasons[0]['text']) ?></summary>
+                <ul class="why-list">
+                    <?php foreach ($reasons as $reason): ?>
+                        <li>
+                            <span><?= e($reason['text']) ?></span>
+                            <strong class="<?= $reason['points'] < 0 ? 'text-danger' : 'text-brand' ?>"><?= $reason['points'] > 0 ? '+' . $reason['points'] : $reason['points'] ?></strong>
+                        </li>
+                    <?php endforeach; ?>
+                    <li class="why-total"><span>Score</span><strong><?= (int) $recommendation['score'] ?></strong></li>
+                </ul>
+            </details>
+        <?php endif; ?>
         <div class="card-footer">
+            <span class="muted small"><?= e($isOpportunity ? deadline_label($item['deadline'], $now) : format_event_range($item['starts_at'], $item['ends_at'])) ?></span>
             <?= toggle_button($recommendation['type'], (int) $item['id'], $item['title'], false) ?>
+        </div>
+    </article>
+    <?php
+}
+
+/** A published study resource with its download button. */
+function resource_card(array $resource): void
+{
+    $r = $resource;
+    $extension = strtoupper(pathinfo($r['original_name'], PATHINFO_EXTENSION));
+    ?>
+    <article class="card item-card">
+        <p class="card-kicker"><?= e($extension) ?> · <?= e(format_file_size((int) $r['file_size'])) ?></p>
+        <h3 class="card-title"><?= e($r['title']) ?></h3>
+        <p class="card-subtitle"><?= e($r['uploader_name']) ?> · <?= e($r['organization_name']) ?></p>
+        <p class="card-text clamp-2"><?= e($r['description']) ?></p>
+        <div class="card-footer">
+            <span class="muted small"><?= e(RESOURCE_LICENSE_SHORT[$r['license']]) ?></span>
+            <a class="button button-secondary button-small" href="<?= e(url('resource-download.php', ['id' => $r['id']])) ?>"
+               aria-label="Download <?= e($r['title']) ?>">Download</a>
         </div>
     </article>
     <?php

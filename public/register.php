@@ -9,24 +9,25 @@ if (is_signed_in()) {
     redirect(url('dashboard.php'));
 }
 
-$values = ['name' => '', 'email' => ''];
+$campuses = get_campuses();
+$values = ['name' => '', 'email' => '', 'campus_id' => ''];
 $errors = [];
 
 if (is_post()) {
     verify_csrf();
-    $values = ['name' => post_text('name'), 'email' => post_text('email')];
+    $values = ['name' => post_text('name'), 'email' => post_text('email'), 'campus_id' => post_text('campus_id')];
     $input = $values + [
         'password'         => (string) ($_POST['password'] ?? ''),
         'password_confirm' => (string) ($_POST['password_confirm'] ?? ''),
     ];
 
-    $errors = validate_registration($input);
+    $errors = validate_registration($input, array_keys($campuses));
     if (!isset($errors['email']) && find_user_by_email($values['email']) !== null) {
         $errors['email'] = 'An account with this email already exists. Try signing in.';
     }
 
     if ($errors === []) {
-        $userId = create_student_account($values['name'], $values['email'], $input['password']);
+        $userId = create_student_account($values['name'], $values['email'], $input['password'], (int) $values['campus_id']);
         log_in(find_user_by_id($userId));
         flash('Your account is ready. Choose a few interests to get recommendations.');
         redirect(url('dashboard.php'));
@@ -56,6 +57,17 @@ require __DIR__ . '/../templates/header.php';
                 <label for="email">Email</label>
                 <input id="email" name="email" type="email" autocomplete="email" value="<?= e($values['email']) ?>"<?= error_attributes($errors, 'email') ?>>
                 <?= field_error($errors, 'email') ?>
+            </div>
+            <div class="field">
+                <label for="campus_id">Your campus</label>
+                <select id="campus_id" name="campus_id"<?= error_attributes($errors, 'campus_id') ?>>
+                    <option value="">Choose…</option>
+                    <?php foreach ($campuses as $campusId => $campusName): ?>
+                        <option value="<?= (int) $campusId ?>" <?= $values['campus_id'] === (string) $campusId ? 'selected' : '' ?>><?= e($campusName) ?></option>
+                    <?php endforeach; ?>
+                </select>
+                <p class="hint">You will also see campus-only events from this campus.</p>
+                <?= field_error($errors, 'campus_id') ?>
             </div>
             <div class="field">
                 <label for="password">Password</label>

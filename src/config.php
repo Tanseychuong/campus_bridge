@@ -26,6 +26,8 @@ $settings = [
         'password' => 'mysql',
     ],
     'debug' => false, // show detailed error messages? Only while developing.
+    // Uploaded resources live OUTSIDE public/, so they can only be downloaded through resource-download.php.
+    'upload_dir' => dirname(__DIR__) . '/storage/uploads',
 ];
 
 // 2. Personal settings file, if it exists
@@ -43,6 +45,9 @@ foreach ($environment as $variable => $key) {
     if ($value !== false) {
         $settings['db'][$key] = $value;
     }
+}
+if (getenv('UPLOAD_DIR') !== false) {
+    $settings['upload_dir'] = getenv('UPLOAD_DIR');
 }
 if (getenv('APP_DEBUG') !== false) {
     $settings['debug'] = getenv('APP_DEBUG') === '1';

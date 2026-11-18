@@ -3,22 +3,30 @@
  * Reading and changing campus events.
  */
 
-/** The SELECT used by every event query: event columns + the organization's name. */
-const EVENT_SELECT = 'SELECT events.*, organizations.name AS organization_name
+/** The SELECT used by every event query: event columns + the organization's name and campus. */
+const EVENT_SELECT = 'SELECT events.*, organizations.name AS organization_name,
+                             organizations.campus_id AS campus_id, campuses.short_name AS campus_name
                         FROM events
-                        JOIN organizations ON organizations.id = events.organization_id';
+                        JOIN organizations ON organizations.id = events.organization_id
+                        JOIN campuses ON campuses.id = organizations.campus_id';
 
-/** Events with the given status, earliest first. */
+/**
+ * Events with the given status, earliest first.
+ * Published events are filtered for the person viewing the page, so
+ * campus-only events never reach students of another campus.
+ */
 function get_events(string $status = 'published'): array
 {
-    $rows = fetch_all(EVENT_SELECT . ' WHERE events.status = ? ORDER BY events.starts_at', [$status]);
+    [$visibleSql, $visibleParams] = $status === 'published' ? event_visibility_condition(current_user()) : ['', []];
+    $rows = fetch_all(EVENT_SELECT . ' WHERE events.status = ?' . $visibleSql . ' ORDER BY events.starts_at', array_merge([$status], $visibleParams));
     return attach_interests($rows, 'event_interests', 'event_id');
 }
 
-/** One PUBLISHED event, or null. */
+/** One PUBLISHED event the current visitor is allowed to see, or null. */
 function find_event(int $id): ?array
 {
-    $row = fetch_one(EVENT_SELECT . " WHERE events.id = ? AND events.status = 'published'", [$id]);
+    [$visibleSql, $visibleParams] = event_visibility_condition(current_user());
+    $row = fetch_one(EVENT_SELECT . " WHERE events.id = ? AND events.status = 'published'" . $visibleSql, array_merge([$id], $visibleParams));
     return $row === null ? null : attach_interests([$row], 'event_interests', 'event_id')[0];
 }
 
@@ -49,12 +57,12 @@ function create_event(array $values, string $startsAt, string $endsAt, array $or
     try {
         execute(
             "INSERT INTO events (title, organization_id, category, summary, description, venue, starts_at, ends_at,
-                                 capacity, registration, contact, status, created_by)
-             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending', ?)",
+                                 capacity, registration, visibility, contact, status, created_by)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending', ?)",
             [
                 $values['title'], $organization['id'], $values['category'], $values['summary'], $values['description'],
                 $values['venue'], $startsAt, $endsAt, $values['capacity'] === '' ? null : (int) $values['capacity'],
-                $values['registration'], $organization['contact_email'], $userId,
+                $values['registration'], $values['visibility'], $organization['contact_email'], $userId,
             ]
         );
         $eventId = (int) db()->lastInsertId();
@@ -75,12 +83,12 @@ function update_event(int $eventId, array $values, string $startsAt, string $end
         execute(
             "UPDATE events
                 SET title = ?, category = ?, summary = ?, description = ?, venue = ?, starts_at = ?, ends_at = ?,
-                    capacity = ?, registration = ?, status = 'pending', review_note = NULL
+                    capacity = ?, registration = ?, visibility = ?, status = 'pending', review_note = NULL
               WHERE id = ?",
             [
                 $values['title'], $values['category'], $values['summary'], $values['description'], $values['venue'],
                 $startsAt, $endsAt, $values['capacity'] === '' ? null : (int) $values['capacity'],
-                $values['registration'], $eventId,
+                $values['registration'], $values['visibility'], $eventId,
             ]
         );
         replace_interests('event_interests', 'event_id', $eventId, $values['interests']);

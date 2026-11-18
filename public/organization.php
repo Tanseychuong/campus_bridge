@@ -30,7 +30,7 @@ require __DIR__ . '/../templates/header.php';
     <header class="card org-header">
         <?= org_avatar($org, 'large') ?>
         <div class="grow">
-            <div class="badge-row"><?= badge(ORGANIZATION_CATEGORIES[$org['category']], 'brand') ?> <?= badge('Sample data', 'gold') ?></div>
+            <div class="badge-row"><?= badge(ORGANIZATION_CATEGORIES[$org['category']], 'brand') ?> <?= badge($org['campus_name'] . ' Campus') ?> <?= badge('Sample data', 'gold') ?></div>
             <h1 class="detail-title"><?= e($org['name']) ?></h1>
             <p class="muted"><?= e($org['summary']) ?></p>
         </div>

@@ -30,20 +30,21 @@ if ($existingEvent) {
         'date' => format_date($existingEvent['starts_at'], 'Y-m-d'),
         'start_time' => format_time($existingEvent['starts_at']), 'end_time' => format_time($existingEvent['ends_at']),
         'capacity' => $existingEvent['capacity'] === null ? '' : (string) $existingEvent['capacity'],
-        'registration' => $existingEvent['registration'], 'interests' => $existingEvent['interests'],
+        'registration' => $existingEvent['registration'], 'visibility' => $existingEvent['visibility'],
+        'interests' => $existingEvent['interests'],
     ];
 } else {
     $values = [
         'title' => '', 'category' => 'tech', 'summary' => '', 'description' => '', 'venue' => '',
         'date' => $now->modify('+7 days')->format('Y-m-d'), 'start_time' => '18:00', 'end_time' => '19:30',
-        'capacity' => '', 'registration' => 'open', 'interests' => [],
+        'capacity' => '', 'registration' => 'open', 'visibility' => 'public', 'interests' => [],
     ];
 }
 $errors = [];
 
 if (is_post()) {
     verify_csrf();
-    foreach (['title', 'category', 'summary', 'description', 'venue', 'date', 'start_time', 'end_time', 'capacity', 'registration'] as $field) {
+    foreach (['title', 'category', 'summary', 'description', 'venue', 'date', 'start_time', 'end_time', 'capacity', 'registration', 'visibility'] as $field) {
         $values[$field] = post_text($field);
     }
     $values['interests'] = post_list('interests');
@@ -148,6 +149,18 @@ require __DIR__ . '/../templates/header.php';
                     </select>
                 </div>
             </div>
+
+            <fieldset class="field"<?= isset($errors['visibility']) ? ' aria-describedby="visibility-error"' : '' ?>>
+                <legend>Who can see this event? <span class="required">*</span></legend>
+                <?php foreach (EVENT_VISIBILITY as $value => $label): ?>
+                    <label class="radio">
+                        <input type="radio" name="visibility" value="<?= e($value) ?>" <?= $values['visibility'] === $value ? 'checked' : '' ?>>
+                        <?= e($value === 'campus' ? 'Only ' . $organization['campus_name'] . ' students' : $label) ?>
+                    </label>
+                <?php endforeach; ?>
+                <p class="hint">Campus-only events are hidden from students of other campuses and from visitors who are not signed in.</p>
+                <?= field_error($errors, 'visibility') ?>
+            </fieldset>
 
             <fieldset class="field"<?= isset($errors['interests']) ? ' aria-describedby="interests-error"' : '' ?>>
                 <legend>Interest tags <span class="required">*</span></legend>

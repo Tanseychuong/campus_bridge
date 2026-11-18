@@ -75,6 +75,10 @@ function validate_event_form(array $input, DateTimeImmutable $now): array
         $errors['registration'] = 'Choose how people register.';
     }
 
+    if (!isset(EVENT_VISIBILITY[$input['visibility'] ?? ''])) {
+        $errors['visibility'] = 'Choose who can see this event.';
+    }
+
     $interests = $input['interests'] ?? [];
     $validInterests = array_filter($interests, fn ($interest) => isset(INTEREST_LABELS[$interest]));
     if ($validInterests === [] || count($validInterests) !== count($interests)) {
@@ -92,8 +96,8 @@ function event_form_times(array $input): array
     return [to_database($start), to_database($end)];
 }
 
-/** Checks the sign-up form. */
-function validate_registration(array $input): array
+/** Checks the sign-up form. $campusIds are the campuses a student may choose. */
+function validate_registration(array $input, array $campusIds): array
 {
     $errors = [];
 
@@ -115,6 +119,60 @@ function validate_registration(array $input): array
 
     if (($input['password_confirm'] ?? '') !== $password) {
         $errors['password_confirm'] = 'The two passwords do not match.';
+    }
+
+    if (!in_array((int) ($input['campus_id'] ?? 0), $campusIds, true)) {
+        $errors['campus_id'] = 'Choose your campus.';
+    }
+
+    return $errors;
+}
+
+/**
+ * Checks the "share a resource" form, including the intellectual-property declaration.
+ * $organizationIds are the organizations a resource can be sent to.
+ */
+function validate_resource_form(array $input, array $organizationIds): array
+{
+    $errors = [];
+
+    $title = $input['title'] ?? '';
+    if (mb_strlen($title) < 5 || mb_strlen($title) > 120) {
+        $errors['title'] = 'The title must be between 5 and 120 characters.';
+    }
+
+    $description = $input['description'] ?? '';
+    if (mb_strlen($description) < 10 || mb_strlen($description) > 300) {
+        $errors['description'] = 'Describe the resource in 10–300 characters.';
+    }
+
+    if (!in_array((int) ($input['organization_id'] ?? 0), $organizationIds, true)) {
+        $errors['organization_id'] = 'Choose the organization that should review it.';
+    }
+
+    $ownership = $input['ip_ownership'] ?? '';
+    if (!isset(IP_OWNERSHIP[$ownership])) {
+        $errors['ip_ownership'] = 'Tell us who created this work.';
+    } elseif ($ownership !== 'sole' && mb_strlen($input['ip_credits'] ?? '') < 3) {
+        $errors['ip_credits'] = 'Name the co-authors or the sources you have permission to use.';
+    }
+    if (mb_strlen($input['ip_credits'] ?? '') > 400) {
+        $errors['ip_credits'] = 'Keep the credits under 400 characters.';
+    }
+
+    if (!isset(RESOURCE_LICENSES[$input['license'] ?? ''])) {
+        $errors['license'] = 'Choose how others may use it.';
+    }
+
+    foreach (['confirm_rights', 'confirm_no_confidential', 'confirm_takedown'] as $box) {
+        if (($input[$box] ?? '') !== '1') {
+            $errors['declaration'] = 'Please confirm all three statements in the declaration.';
+        }
+    }
+
+    $name = $input['declared_name'] ?? '';
+    if (mb_strlen($name) < 2 || mb_strlen($name) > 80) {
+        $errors['declared_name'] = 'Type your full name to sign the declaration.';
     }
 
     return $errors;

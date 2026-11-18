@@ -108,6 +108,10 @@ These weights come from the team's summary of the brief. **Check them against th
 | Org rep: create, edit, delete own events  | ✅     | `public/manage.php`, `manage-event.php`, `manage-event-delete.php` |
 | Admin: review queue with automated hints  | ✅     | `public/admin.php`, `admin-review.php`, `src/moderation.php` |
 | Admin: analytics charts                   | ✅     | `public/admin.php`, `src/analytics.php`       |
+| Cross-campus: events for everyone or one campus only | ✅ | `src/data/campuses.php`, `src/data/events.php`, `manage-event.php` |
+| Student resources with IP declaration     | ✅     | `public/resources.php`, `resource-upload.php`, `resource-download.php`, `src/data/resources.php` |
+| Org rep: publish, reject, take down resources | ✅ | `public/manage.php`, `manage-resource.php`    |
+| Background privacy & copyright scanner    | ✅     | `bin/scan-worker.php`, `src/resource_scan.php` |
 | Deadline reminder emails                  | 📋     | Needs an email service                        |
 | Password reset by email                   | 📋     | Needs an email service                        |
 | Event registration with capacity limits   | 📋     | "I'm interested" is a bookmark, not a reservation |
@@ -116,7 +120,7 @@ These weights come from the team's summary of the brief. **Check them against th
 
 ## 4. Run it with Docker
 
-The easiest option: one command starts the website, MySQL and phpMyAdmin.
+The easiest option: one command starts the website, MySQL, phpMyAdmin and the resource scan worker.
 
 **Requirements:** [Docker Desktop](https://www.docker.com/products/docker-desktop/).
 
@@ -133,6 +137,8 @@ docker compose up --build
 
 - The first start imports `database/schema.sql` and `database/seed.sql` automatically.
 - Your code is shared with the container, so edits appear when you refresh the page.
+- The `worker` service scans uploaded resources in the background. See what it is doing with
+  `docker compose logs -f worker`. After changing scanner code, restart it: `docker compose restart worker`.
 - **Reset the database** (for example to refresh the sample dates): `docker compose down -v`, then `docker compose up`.
 - Stop everything: `docker compose down`.
 
@@ -153,6 +159,11 @@ docker compose up --build
    `src/config.local.example.php` to `src/config.local.php` and enter your password. This file is
    git-ignored, so your password is never pushed.
 6. Open **http://localhost/campus_bridge/public/**. Opening http://localhost/campus_bridge/ also redirects there.
+7. **Start the scan worker** in a terminal in the project folder: `php bin/scan-worker.php` (leave it
+   running). Without it, uploaded resources stay at "check in progress". For a one-off run use
+   `php bin/scan-worker.php --once`. Reading Office files needs PHP's `zip` extension (enable it in AMPPS's
+   PHP settings); without it the scanner asks the rep to check those files by eye. For uploads up to 10 MB,
+   set `upload_max_filesize = 10M` and `post_max_size = 12M` in AMPPS's PHP settings.
 
 **Troubleshooting**
 
@@ -166,13 +177,39 @@ docker compose up --build
 
 ## 6. Demo accounts
 
-These exist only in the sample data. The password for all three is **`CampusBridge2026!`**.
+These exist only in the sample data. The password for all of them is **`CampusBridge2026!`**.
 
-| Email                 | Role                                            |
-| --------------------- | ----------------------------------------------- |
-| `student@example.org` | Student                                         |
-| `rep@example.org`     | Organization rep for *Code & Circuits Society* |
-| `admin@example.org`   | Administrator                                   |
+| Email                   | Role                                            |
+| ----------------------- | ----------------------------------------------- |
+| `student@example.org`   | Student, Hillside Campus                        |
+| `riverside@example.org` | Student, Riverside Campus                       |
+| `rep@example.org`       | Organization rep for *Code & Circuits Society* (organization 1, Hillside) |
+| `rep2@example.org` … `rep16@example.org` | Rep for organization 2 … 16 (e.g. `rep9@example.org` = *Open Design Studio*, Riverside) |
+| `admin@example.org`     | Administrator (sees every campus)               |
+
+**Campuses.** Every organization and student belongs to a campus. When an organizer creates an event
+they choose **Everyone (all campuses)** or **Only students on our campus**. Campus-only events are
+filtered out in SQL (`event_visibility_condition()`), so they never reach guests or other campuses —
+try *Inter-Year Football Tournament* as the Hillside vs the Riverside student.
+
+**Resources.** Students share files on **Resources → Share a resource** and sign an intellectual-property
+declaration (who created it, credits, licence, three confirmations and a typed signature). The file is
+stored outside `public/` (`storage/uploads/`) under a random name and stays private until the rep of the
+chosen organization publishes it on their **Manage** page. Reps can take a public resource down, and
+publish it again, at any time. Uploads are limited to 10 MB and the file type is checked from its content.
+
+**Automatic privacy & copyright check.** A background worker (`bin/scan-worker.php`) picks up every new
+upload, reads its text (TXT/MD, PDF, Word, PowerPoint, Excel and text files inside ZIPs) and shows the rep
+what to look at before publishing. Like the admin review hints, it never decides by itself.
+
+| Looks for | Examples |
+| --------- | -------- |
+| **Privacy** | Ghana Card / passport numbers, bank card numbers (Luhn check), lists of emails or phone numbers, student IDs, dates of birth, passwords, health, bank and grade details |
+| **Copyright** | Publisher notices and ISBNs (pages copied from a textbook), someone else's © notice when the student declared sole ownership, answer keys / solutions manuals / exam papers, "do not distribute" notices, a different author in the file's properties, the identical file already uploaded by another student |
+| **Check by eye** | Images and scanned PDFs, which cannot be read as text |
+
+Findings never repeat the personal data (emails are shown as `e***@example.org`), and **Publish** asks for
+confirmation when a serious issue was found.
 
 Anyone can also create a new student account on the **Create account** page. Organization reps
 and admins are assigned in the database (`users.role` and `users.organization_id`).

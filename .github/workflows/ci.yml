@@ -34,14 +34,14 @@ jobs:
         uses: shivammathur/setup-php@v2
         with:
           php-version: "8.2"
-          extensions: pdo_mysql, mbstring, curl
+          extensions: pdo_mysql, mbstring, curl, zip, fileinfo
           tools: composer
 
       - name: Install test tools (PHPUnit)
         run: composer install --no-interaction --no-progress
 
       - name: Check every PHP file for syntax errors
-        run: find src templates public tests -name '*.php' -print0 | xargs -0 -n1 php -l > /dev/null
+        run: find src templates public tests bin -name '*.php' -print0 | xargs -0 -n1 php -l > /dev/null
 
       - name: Run all tests
         env:

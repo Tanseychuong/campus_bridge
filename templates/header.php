@@ -12,7 +12,7 @@ $flash = take_flash();
 $currentPage = basename($_SERVER['SCRIPT_NAME'] ?? '');
 
 // The links in the main menu: [file, label]
-$discoverLinks = [['explore.php', 'Explore'], ['events.php', 'Events'], ['organizations.php', 'Organizations']];
+$discoverLinks = [['explore.php', 'Explore'], ['events.php', 'Events'], ['organizations.php', 'Organizations'], ['resources.php', 'Resources']];
 $personalLinks = [['dashboard.php', 'Dashboard'], ['saved.php', 'Saved'], ['calendar.php', 'Calendar']];
 if ($user && $user['role'] === 'org_rep') {
     $personalLinks[] = ['manage.php', 'Manage'];

@@ -9,7 +9,7 @@ final class AccountTest extends WebTestCase
             'name' => 'A', 'email' => 'not-an-email', 'password' => 'short', 'password_confirm' => 'different',
         ]);
         $this->assertSame(200, $response['status']);
-        $this->assertSeeText('Please fix 4 fields below.', $response);
+        $this->assertSeeText('Please fix 5 fields below.', $response);
         $this->assertStringContainsString('aria-invalid="true"', $response['body']);
     }
 
@@ -17,7 +17,7 @@ final class AccountTest extends WebTestCase
     {
         $email = 'new-' . uniqid() . '@example.org';
         $response = $this->submit('register.php', 'register.php', [
-            'name' => 'Yaw Boateng', 'email' => $email, 'password' => 'a-long-password', 'password_confirm' => 'a-long-password',
+            'name' => 'Yaw Boateng', 'email' => $email, 'password' => 'a-long-password', 'password_confirm' => 'a-long-password', 'campus_id' => '1',
         ]);
         $this->assertSeeText('Your dashboard', $response);
         $this->assertSeeText('Yaw Boateng', $response);
@@ -25,7 +25,7 @@ final class AccountTest extends WebTestCase
         // The same email cannot be used twice.
         $this->submit('index.php', 'logout.php', []);
         $again = $this->submit('register.php', 'register.php', [
-            'name' => 'Someone', 'email' => $email, 'password' => 'a-long-password', 'password_confirm' => 'a-long-password',
+            'name' => 'Someone', 'email' => $email, 'password' => 'a-long-password', 'password_confirm' => 'a-long-password', 'campus_id' => '1',
         ]);
         $this->assertSeeText('An account with this email already exists', $again);
     }

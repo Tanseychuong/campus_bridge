@@ -5,14 +5,21 @@
 --   CURDATE() + INTERVAL 12 DAY + INTERVAL '23:59' HOUR_MINUTE
 -- means "12 days from today at 23:59". Re-import to refresh the dates.
 --
--- Demo accounts (password for all three: CampusBridge2026!)
---   student@example.org  (student)
+-- Demo accounts (password for all of them: CampusBridge2026!)
+--   student@example.org  (student, Hillside Campus)
+--   riverside@example.org (student, Riverside Campus)
+--   rep2@example.org … rep16@example.org (rep for organization 2 … 16)
 --   rep@example.org      (organization rep for Code & Circuits Society)
 --   admin@example.org    (administrator)
 -- =====================================================================
 
 SET NAMES utf8mb4;
 SET time_zone = '+00:00';
+
+-- ---------------------------------------------------------------- campuses
+INSERT INTO campuses (id, name, short_name) VALUES
+    (1, 'Hillside Campus', 'Hillside'),
+    (2, 'Riverside Campus', 'Riverside');
 
 INSERT INTO interests (slug, label) VALUES
     ('computer-science', 'Computer Science'),
@@ -336,7 +343,33 @@ INSERT INTO event_interests VALUES (25, 'social-impact');
 
 -- ---------------------------------------------------------------- demo users
 -- The password hash below was made with PHP password_hash() (bcrypt).
-INSERT INTO users (name, email, password_hash, role, organization_id) VALUES
-    ('Ama Mensah (demo student)', 'student@example.org', '$2y$10$xzw2xzmJrYFYdBQL2hL.GelkmD/a.e2RfqSBM1MhsIXU52FMAWSMi', 'student', NULL),
-    ('Kojo Asante (demo rep)', 'rep@example.org', '$2y$10$xzw2xzmJrYFYdBQL2hL.GelkmD/a.e2RfqSBM1MhsIXU52FMAWSMi', 'org_rep', 1),
-    ('Esi Owusu (demo admin)', 'admin@example.org', '$2y$10$xzw2xzmJrYFYdBQL2hL.GelkmD/a.e2RfqSBM1MhsIXU52FMAWSMi', 'admin', NULL);
+INSERT INTO users (name, email, password_hash, role, organization_id, campus_id) VALUES
+    ('Ama Mensah (demo student)', 'student@example.org', '$2y$10$xzw2xzmJrYFYdBQL2hL.GelkmD/a.e2RfqSBM1MhsIXU52FMAWSMi', 'student', NULL, 1),
+    ('Kojo Asante (demo rep)', 'rep@example.org', '$2y$10$xzw2xzmJrYFYdBQL2hL.GelkmD/a.e2RfqSBM1MhsIXU52FMAWSMi', 'org_rep', 1, 1),
+    ('Esi Owusu (demo admin)', 'admin@example.org', '$2y$10$xzw2xzmJrYFYdBQL2hL.GelkmD/a.e2RfqSBM1MhsIXU52FMAWSMi', 'admin', NULL, NULL),
+    ('Kwame Darko (demo student)', 'riverside@example.org', '$2y$10$xzw2xzmJrYFYdBQL2hL.GelkmD/a.e2RfqSBM1MhsIXU52FMAWSMi', 'student', NULL, 2);
+
+-- One rep for every other organization: rep2@example.org is the rep for organization 2, and so on.
+-- Each rep's campus is their organization's campus (8, 9, 13, 14 and 15 are on Riverside).
+INSERT INTO users (name, email, password_hash, role, organization_id, campus_id) VALUES
+    ('Abena Boateng (demo rep)', 'rep2@example.org', '$2y$10$xzw2xzmJrYFYdBQL2hL.GelkmD/a.e2RfqSBM1MhsIXU52FMAWSMi', 'org_rep', 2, 1),
+    ('Yaw Mensah (demo rep)', 'rep3@example.org', '$2y$10$xzw2xzmJrYFYdBQL2hL.GelkmD/a.e2RfqSBM1MhsIXU52FMAWSMi', 'org_rep', 3, 1),
+    ('Efua Owusu (demo rep)', 'rep4@example.org', '$2y$10$xzw2xzmJrYFYdBQL2hL.GelkmD/a.e2RfqSBM1MhsIXU52FMAWSMi', 'org_rep', 4, 1),
+    ('Kofi Addo (demo rep)', 'rep5@example.org', '$2y$10$xzw2xzmJrYFYdBQL2hL.GelkmD/a.e2RfqSBM1MhsIXU52FMAWSMi', 'org_rep', 5, 1),
+    ('Akosua Badu (demo rep)', 'rep6@example.org', '$2y$10$xzw2xzmJrYFYdBQL2hL.GelkmD/a.e2RfqSBM1MhsIXU52FMAWSMi', 'org_rep', 6, 1),
+    ('Kwabena Osei (demo rep)', 'rep7@example.org', '$2y$10$xzw2xzmJrYFYdBQL2hL.GelkmD/a.e2RfqSBM1MhsIXU52FMAWSMi', 'org_rep', 7, 1),
+    ('Adwoa Asare (demo rep)', 'rep8@example.org', '$2y$10$xzw2xzmJrYFYdBQL2hL.GelkmD/a.e2RfqSBM1MhsIXU52FMAWSMi', 'org_rep', 8, 2),
+    ('Kwesi Appiah (demo rep)', 'rep9@example.org', '$2y$10$xzw2xzmJrYFYdBQL2hL.GelkmD/a.e2RfqSBM1MhsIXU52FMAWSMi', 'org_rep', 9, 2),
+    ('Afia Ofori (demo rep)', 'rep10@example.org', '$2y$10$xzw2xzmJrYFYdBQL2hL.GelkmD/a.e2RfqSBM1MhsIXU52FMAWSMi', 'org_rep', 10, 1),
+    ('Nana Agyeman (demo rep)', 'rep11@example.org', '$2y$10$xzw2xzmJrYFYdBQL2hL.GelkmD/a.e2RfqSBM1MhsIXU52FMAWSMi', 'org_rep', 11, 1),
+    ('Esi Quaye (demo rep)', 'rep12@example.org', '$2y$10$xzw2xzmJrYFYdBQL2hL.GelkmD/a.e2RfqSBM1MhsIXU52FMAWSMi', 'org_rep', 12, 1),
+    ('Kojo Danso (demo rep)', 'rep13@example.org', '$2y$10$xzw2xzmJrYFYdBQL2hL.GelkmD/a.e2RfqSBM1MhsIXU52FMAWSMi', 'org_rep', 13, 2),
+    ('Ama Sarpong (demo rep)', 'rep14@example.org', '$2y$10$xzw2xzmJrYFYdBQL2hL.GelkmD/a.e2RfqSBM1MhsIXU52FMAWSMi', 'org_rep', 14, 2),
+    ('Yaa Nkansah (demo rep)', 'rep15@example.org', '$2y$10$xzw2xzmJrYFYdBQL2hL.GelkmD/a.e2RfqSBM1MhsIXU52FMAWSMi', 'org_rep', 15, 2),
+    ('Fiifi Acquah (demo rep)', 'rep16@example.org', '$2y$10$xzw2xzmJrYFYdBQL2hL.GelkmD/a.e2RfqSBM1MhsIXU52FMAWSMi', 'org_rep', 16, 1);
+
+-- ---------------------------------------------------------------- campuses & visibility
+-- Every organization starts on Hillside Campus (id 1); these five are on Riverside.
+UPDATE organizations SET campus_id = 2 WHERE id IN (8, 9, 13, 14, 15);
+-- These events are only shown to students of the organizer's own campus.
+UPDATE events SET visibility = 'campus' WHERE id IN (9, 13, 15);

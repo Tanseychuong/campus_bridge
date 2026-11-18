@@ -9,7 +9,7 @@ final class RoleWorkflowTest extends WebTestCase
             'title' => $title, 'category' => 'tech', 'summary' => 'Learn Arduino basics in one evening.',
             'description' => 'A beginner-friendly session on microcontrollers, sensors and LEDs.', 'venue' => 'Fabrication Lab',
             'date' => (new DateTimeImmutable('+5 days'))->format('Y-m-d'), 'start_time' => '18:00', 'end_time' => '20:00',
-            'capacity' => '25', 'registration' => 'rsvp', 'interests' => ['engineering'],
+            'capacity' => '25', 'registration' => 'rsvp', 'visibility' => 'public', 'interests' => ['engineering'],
         ];
     }
 

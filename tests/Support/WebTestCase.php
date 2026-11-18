@@ -75,6 +75,7 @@ abstract class WebTestCase extends TestCase
         $environment = array_merge(getenv(), [
             'DB_HOST' => $db['host'], 'DB_PORT' => $db['port'], 'DB_NAME' => $db['name'],
             'DB_USER' => $db['user'], 'DB_PASSWORD' => $db['password'], 'APP_DEBUG' => '1',
+            'UPLOAD_DIR' => sys_get_temp_dir() . '/campusbridge_test_uploads', // keep test uploads out of the project
         ]);
         $command = [PHP_BINARY, '-S', '127.0.0.1:' . self::PORT, '-t', realpath(__DIR__ . '/../../public')];
         $nullDevice = PHP_OS_FAMILY === 'Windows' ? 'NUL' : '/dev/null';
@@ -92,6 +93,23 @@ abstract class WebTestCase extends TestCase
                 proc_terminate(self::$server);
             }
         });
+    }
+
+    /** Runs the background scan worker once against the test database. Returns its output. */
+    protected function runScanWorker(): string
+    {
+        $db = self::databaseSettings();
+        $environment = array_merge(getenv(), [
+            'DB_HOST' => $db['host'], 'DB_PORT' => $db['port'], 'DB_NAME' => $db['name'],
+            'DB_USER' => $db['user'], 'DB_PASSWORD' => $db['password'],
+            'UPLOAD_DIR' => sys_get_temp_dir() . '/campusbridge_test_uploads',
+        ]);
+        $command = [PHP_BINARY, realpath(__DIR__ . '/../../bin/scan-worker.php'), '--once'];
+        $process = proc_open($command, [1 => ['pipe', 'w'], 2 => ['pipe', 'w']], $pipes, null, $environment);
+        $output = stream_get_contents($pipes[1]) . stream_get_contents($pipes[2]);
+        $exitCode = proc_close($process);
+        $this->assertSame(0, $exitCode, "Scan worker failed:\n$output");
+        return $output;
     }
 
     /* ------------------------------------------------------------------
@@ -113,7 +131,9 @@ abstract class WebTestCase extends TestCase
             CURLOPT_CUSTOMREQUEST => $method,
         ]);
         if ($method === 'POST') {
-            curl_setopt($curl, CURLOPT_POSTFIELDS, http_build_query($form));
+            // A form with a file (CURLFile) is sent as multipart/form-data, like a browser upload.
+            $hasFile = array_filter($form, fn ($value) => $value instanceof CURLFile) !== [];
+            curl_setopt($curl, CURLOPT_POSTFIELDS, $hasFile ? $form : http_build_query($form));
         }
         $response = curl_exec($curl);
         $headerSize = curl_getinfo($curl, CURLINFO_HEADER_SIZE);

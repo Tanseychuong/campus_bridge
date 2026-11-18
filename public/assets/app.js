@@ -48,6 +48,15 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     });
 
+    // 3b. The same for single buttons (e.g. "Publish" when the scanner found serious issues).
+    document.querySelectorAll('button[data-confirm]').forEach(function (button) {
+        button.addEventListener('click', function (event) {
+            if (!window.confirm(button.dataset.confirm)) {
+                event.preventDefault();
+            }
+        });
+    });
+
     // 4. Focus the first invalid field so keyboard and screen-reader users find the problem.
     const firstInvalid = document.querySelector('[aria-invalid="true"]');
     if (firstInvalid) {

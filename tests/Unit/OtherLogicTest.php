@@ -83,7 +83,7 @@ final class OtherLogicTest extends TestCase
             'title' => 'Intro to Robotics', 'category' => 'tech', 'summary' => 'Build your first robot.',
             'description' => 'A hands-on session for beginners covering motors and sensors.', 'venue' => 'Fabrication Lab',
             'date' => '2026-11-25', 'start_time' => '14:00', 'end_time' => '16:00', 'capacity' => '20',
-            'registration' => 'rsvp', 'interests' => ['engineering'],
+            'registration' => 'rsvp', 'visibility' => 'campus', 'interests' => ['engineering'],
         ];
     }
 
@@ -110,9 +110,35 @@ final class OtherLogicTest extends TestCase
 
     public function test_registration_rules(): void
     {
-        $errors = validate_registration(['name' => 'A', 'email' => 'not-an-email', 'password' => 'short', 'password_confirm' => 'other']);
-        $this->assertSame(['name', 'email', 'password', 'password_confirm'], array_keys($errors));
-        $this->assertSame([], validate_registration(['name' => 'Ama', 'email' => 'ama@example.org', 'password' => 'long-enough-1', 'password_confirm' => 'long-enough-1']));
+        $errors = validate_registration(['name' => 'A', 'email' => 'not-an-email', 'password' => 'short', 'password_confirm' => 'other', 'campus_id' => '9'], [1, 2]);
+        $this->assertSame(['name', 'email', 'password', 'password_confirm', 'campus_id'], array_keys($errors));
+        $this->assertSame([], validate_registration(['name' => 'Ama', 'email' => 'ama@example.org', 'password' => 'long-enough-1', 'password_confirm' => 'long-enough-1', 'campus_id' => '2'], [1, 2]));
+    }
+
+    public function test_events_need_a_visibility_choice(): void
+    {
+        $errors = validate_event_form(['visibility' => 'everyone-everywhere'] + $this->validEvent(), test_now());
+        $this->assertSame(['visibility'], array_keys($errors));
+    }
+
+    private function validResource(): array
+    {
+        return [
+            'title' => 'Calculus I revision notes', 'description' => 'My own summary of limits and derivatives.', 'organization_id' => '1',
+            'ip_ownership' => 'sole', 'ip_credits' => '', 'license' => 'cc_by', 'declared_name' => 'Ama Mensah',
+            'confirm_rights' => '1', 'confirm_no_confidential' => '1', 'confirm_takedown' => '1',
+        ];
+    }
+
+    public function test_a_resource_needs_a_complete_ip_declaration(): void
+    {
+        $this->assertSame([], validate_resource_form($this->validResource(), [1, 2]));
+
+        $errors = validate_resource_form(['ip_ownership' => 'joint', 'confirm_takedown' => '', 'declared_name' => ''] + $this->validResource(), [1, 2]);
+        $this->assertSame(['ip_credits', 'declaration', 'declared_name'], array_keys($errors));
+
+        $wrongOrganization = validate_resource_form(['organization_id' => '99'] + $this->validResource(), [1, 2]);
+        $this->assertArrayHasKey('organization_id', $wrongOrganization);
     }
 
     /* ---------- helpers and security ---------- */

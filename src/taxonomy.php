@@ -58,6 +58,11 @@ const LOCATION_MODES = [
     'hybrid'    => 'Hybrid',
 ];
 
+const EVENT_VISIBILITY = [
+    'public' => 'Everyone (all campuses)',
+    'campus' => 'Only students on our campus',
+];
+
 const ROLE_LABELS = [
     'student' => 'Student',
     'org_rep' => 'Organization rep',
