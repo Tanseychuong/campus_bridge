@@ -1,0 +1,105 @@
+@import "tailwindcss";
+
+/*
+ * CampusBridge design tokens.
+ * "Bridge blue" communicates trust; "kente gold" is a warm accent used
+ * sparingly for highlights. All text/background pairs used in the app meet
+ * WCAG AA contrast (4.5:1 for body text).
+ */
+@theme {
+  --font-sans: var(--font-jakarta), ui-sans-serif, system-ui, sans-serif;
+
+  --color-brand-50: #eef3ff;
+  --color-brand-100: #dce6fe;
+  --color-brand-200: #b9ccfc;
+  --color-brand-300: #8eaaf7;
+  --color-brand-500: #3a5fd9;
+  --color-brand-600: #2747bd;
+  --color-brand-700: #1e3897;
+  --color-brand-800: #182d78;
+  --color-brand-900: #121f52;
+
+  --color-gold-50: #fff8e8;
+  --color-gold-100: #fdedc7;
+  --color-gold-300: #f5c868;
+  --color-gold-400: #efb23c;
+  --color-gold-600: #b87a0a;
+  --color-gold-800: #6e4806;
+
+  --color-surface: #f6f7fb;
+  --color-ink: #0f172a;
+  --color-muted: #475569;
+  --color-line: #e2e6ef;
+
+  --radius-card: 1rem;
+  --shadow-card: 0 1px 2px rgb(15 23 42 / 0.04), 0 1px 3px rgb(15 23 42 / 0.06);
+  --shadow-lift: 0 4px 12px rgb(15 23 42 / 0.08), 0 2px 4px rgb(15 23 42 / 0.04);
+}
+
+@layer base {
+  html {
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    background: var(--color-surface);
+    color: var(--color-ink);
+  }
+
+  /* Visible keyboard focus everywhere (WCAG 2.4.7 / 2.4.11). */
+  :focus-visible {
+    outline: 3px solid var(--color-brand-500);
+    outline-offset: 2px;
+    border-radius: 6px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+}
+
+@layer components {
+  .card {
+    background: white;
+    border: 1px solid var(--color-line);
+    border-radius: var(--radius-card);
+    box-shadow: var(--shadow-card);
+  }
+
+  .card-interactive {
+    transition:
+      box-shadow 150ms ease,
+      border-color 150ms ease,
+      transform 150ms ease;
+  }
+  .card-interactive:hover {
+    border-color: var(--color-brand-200);
+    box-shadow: var(--shadow-lift);
+  }
+
+  .container-page {
+    width: 100%;
+    max-width: 76rem;
+    margin-inline: auto;
+    padding-inline: 1rem;
+  }
+  @media (min-width: 640px) {
+    .container-page {
+      padding-inline: 1.5rem;
+    }
+  }
+
+  /* Makes the whole card clickable while keeping one real link for screen readers. */
+  .stretched-link::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: var(--radius-card);
+  }
+}
