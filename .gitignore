@@ -1,23 +1,28 @@
-# Composer packages (install with: composer install)
-/vendor/
+# ---------- backend (PHP) ----------
+# Composer packages (install with: cd backend && composer install)
+/backend/vendor/
 
 # Personal settings with passwords — never commit
-/src/config.local.php
+/backend/src/config.local.php
 .env
 .env.*
 !.env.example
 
 # PHPUnit cache
-/.phpunit.cache/
+/backend/.phpunit.cache/
 .phpunit.result.cache
 
-# Editors / operating systems
+# Files uploaded by students (kept out of Git)
+/backend/storage/uploads/*
+!/backend/storage/uploads/.gitkeep
+
+# ---------- frontend (React) ----------
+/frontend/node_modules/
+/frontend/dist/
+
+# ---------- editors / operating systems ----------
 .vscode/*
 !.vscode/extensions.json
 .idea/
 .DS_Store
 Thumbs.db
-
-# Files uploaded by students (kept out of Git)
-/storage/uploads/*
-!/storage/uploads/.gitkeep

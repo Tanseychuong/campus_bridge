@@ -7,7 +7,8 @@ student organizations** into one place. Students get **recommendations that expl
 **deadline tracking** and a **calendar that warns about clashing events**. Organization
 representatives publish events, and administrators review new listings before they go public.
 
-It is built with **plain PHP 8 and MySQL 8**, with no framework, and runs on **AMPPS** or **Docker**.
+It is split into two parts: a **React** frontend (`frontend/`) and a **plain PHP 8 + MySQL 8** JSON API
+with no framework (`backend/`). It runs on **AMPPS** (plus Node.js for the frontend) or **Docker**.
 
 > **Independent student project.** CampusBridge is a CS341 Web Technologies project. It is not
 > affiliated with, endorsed by or operated by Ashesi University or any other institution. All
@@ -83,7 +84,7 @@ These weights come from the team's summary of the brief. **Check them against th
 | Criterion                         | Weight | How CampusBridge addresses it                                                                                                 |
 | --------------------------------- | ------ | ----------------------------------------------------------------------------------------------------------------------------- |
 | Usefulness                        | 10%    | A real student problem, a plan to validate it, and features students act on (save, track, export).                             |
-| Production-grade engineering      | 15%    | Real accounts with hashed passwords, server-side role checks, prepared statements, CSRF protection, validation, error pages, responsive design, 77 automated tests, CI. |
+| Production-grade engineering      | 15%    | Real accounts with hashed passwords, server-side role checks, prepared statements, CSRF protection, validation, clear error answers, responsive design, 97 automated tests, CI. |
 | Ambition and technical complexity | 25%    | Search engine with typo tolerance, explainable recommender, clash detection algorithm, `.ics` export, review workflow, analytics. |
 | Individual viva quiz              | 50%    | Plain PHP with no framework "magic", heavily commented code, and the [viva guide](#12-viva-quiz-preparation).                  |
 
@@ -93,25 +94,28 @@ These weights come from the team's summary of the brief. **Check them against th
 
 ✅ = implemented and tested · 📋 = planned
 
+Paths starting with `pages/` are React pages in `frontend/src/`; `routes/` and the other `.php`
+files are the PHP API in `backend/src/`.
+
 | Feature                                   | Status | Where                                         |
 | ----------------------------------------- | ------ | --------------------------------------------- |
-| Home page with search and highlights      | ✅     | `public/index.php`                            |
-| Unified search, filters and sorting       | ✅     | `public/explore.php`, `src/search.php`        |
-| Opportunity, event and organization pages | ✅     | `public/opportunity.php`, `event.php`, `organization.php` |
-| Events by day, organizations by category  | ✅     | `public/events.php`, `organizations.php`      |
-| Accounts: sign up, sign in, sign out      | ✅     | `public/register.php`, `login.php`, `logout.php`, `src/auth.php` |
-| Interests and recommendations             | ✅     | `public/preferences.php`, `dashboard.php`, `src/recommend.php` |
-| Save, "I'm interested" and follow         | ✅     | `public/toggle.php`                           |
-| Deadline tracker                          | ✅     | `public/saved.php`, `src/deadlines.php`       |
-| Calendar with clash detection             | ✅     | `public/calendar.php`, `src/schedule.php`     |
-| Calendar export (`.ics`)                  | ✅     | `public/calendar-export.php`, `src/ics.php`   |
-| Org rep: create, edit, delete own events  | ✅     | `public/manage.php`, `manage-event.php`, `manage-event-delete.php` |
-| Admin: review queue with automated hints  | ✅     | `public/admin.php`, `admin-review.php`, `src/moderation.php` |
-| Admin: analytics charts                   | ✅     | `public/admin.php`, `src/analytics.php`       |
-| Cross-campus: events for everyone or one campus only | ✅ | `src/data/campuses.php`, `src/data/events.php`, `manage-event.php` |
-| Student resources with IP declaration     | ✅     | `public/resources.php`, `resource-upload.php`, `resource-download.php`, `src/data/resources.php` |
-| Org rep: publish, reject, take down resources | ✅ | `public/manage.php`, `manage-resource.php`    |
-| Background privacy & copyright scanner    | ✅     | `bin/scan-worker.php`, `src/resource_scan.php` |
+| Home page with search and highlights      | ✅     | `pages/Home.jsx`, `routes/catalogue.php`      |
+| Unified search, filters and sorting       | ✅     | `pages/Explore.jsx`, `search.php`             |
+| Opportunity, event and organization pages | ✅     | `pages/Details.jsx`, `routes/catalogue.php`   |
+| Events by day, organizations by category  | ✅     | `pages/Lists.jsx`, `routes/catalogue.php`     |
+| Accounts: sign up, sign in, sign out      | ✅     | `pages/Account.jsx`, `routes/account.php`, `auth.php` |
+| Interests and recommendations             | ✅     | `pages/Student.jsx`, `recommend.php`          |
+| Save, "I'm interested" and follow         | ✅     | `ToggleButton` in `components/cards.jsx`, `POST /api/toggle` |
+| Deadline tracker                          | ✅     | `pages/Student.jsx` (Saved), `deadlines.php`  |
+| Calendar with clash detection             | ✅     | `pages/Student.jsx` (Calendar), `schedule.php` |
+| Calendar export (`.ics`)                  | ✅     | `GET /api/calendar.ics`, `ics.php`            |
+| Org rep: create, edit, delete own events  | ✅     | `pages/Manage.jsx`, `routes/manage.php`       |
+| Admin: review queue with automated hints  | ✅     | `pages/Admin.jsx`, `routes/admin.php`, `moderation.php` |
+| Admin: analytics charts                   | ✅     | `components/BarChart.jsx`, `analytics.php`    |
+| Cross-campus: events for everyone or one campus only | ✅ | `data/campuses.php`, `data/events.php` |
+| Student resources with IP declaration     | ✅     | `pages/Resources.jsx`, `routes/resources.php`, `data/resources.php` |
+| Org rep: publish, reject, take down resources | ✅ | `pages/Manage.jsx`, `routes/manage.php`       |
+| Background privacy & copyright scanner    | ✅     | `backend/bin/scan-worker.php`, `resource_scan.php` |
 | Deadline reminder emails                  | 📋     | Needs an email service                        |
 | Password reset by email                   | 📋     | Needs an email service                        |
 | Event registration with capacity limits   | 📋     | "I'm interested" is a bookmark, not a reservation |
@@ -120,7 +124,8 @@ These weights come from the team's summary of the brief. **Check them against th
 
 ## 4. Run it with Docker
 
-The easiest option: one command starts the website, MySQL, phpMyAdmin and the resource scan worker.
+The easiest option: one command starts the React website, the PHP API, MySQL, phpMyAdmin and the
+resource scan worker.
 
 **Requirements:** [Docker Desktop](https://www.docker.com/products/docker-desktop/).
 
@@ -130,13 +135,16 @@ cd campus_bridge
 docker compose up --build
 ```
 
-| Open                    | What                                                    |
-| ----------------------- | ------------------------------------------------------- |
-| http://localhost:8080   | CampusBridge                                            |
-| http://localhost:8081   | phpMyAdmin (user `root`, password `campusbridge-dev`)  |
+| Open                                | What                                                    |
+| ----------------------------------- | ------------------------------------------------------- |
+| http://localhost:8080               | CampusBridge (the React app)                            |
+| http://localhost:8000/api/session   | The PHP API directly (JSON)                              |
+| http://localhost:8081               | phpMyAdmin (user `root`, password `campusbridge-dev`)  |
 
-- The first start imports `database/schema.sql` and `database/seed.sql` automatically.
-- Your code is shared with the container, so edits appear when you refresh the page.
+- The first start imports `backend/database/schema.sql` and `backend/database/seed.sql` automatically.
+- The first start also runs `npm install` inside the `web` container, so it takes a minute or two.
+- Your code is shared with the containers: React changes appear instantly (Vite "hot reload"),
+  PHP changes apply on the next request.
 - The `worker` service scans uploaded resources in the background. See what it is doing with
   `docker compose logs -f worker`. After changing scanner code, restart it: `docker compose restart worker`.
 - **Reset the database** (for example to refresh the sample dates): `docker compose down -v`, then `docker compose up`.
@@ -146,32 +154,51 @@ docker compose up --build
 
 ## 5. Run it with AMPPS
 
-**Requirements:** [AMPPS](https://ampps.com/) with PHP 8.2 and MySQL 8.
+**Requirements:** [AMPPS](https://ampps.com/) with PHP 8.2 and MySQL 8, plus
+[Node.js 20 or newer](https://nodejs.org/) for the React frontend.
+
+AMPPS runs the **backend** (Apache + PHP + MySQL). Node.js runs the **frontend** next to it.
 
 1. **Copy the project** into the AMPPS web folder, for example `C:\Program Files\Ampps\www\campus_bridge`
    (or clone it there with Git).
-2. **Start Apache and MySQL** in the AMPPS control panel.
+2. **Start Apache and MySQL** in the AMPPS control panel. Apache's `mod_rewrite` must be on (it is by default).
 3. **Create the database:** open http://localhost/phpmyadmin, click **New**, name it `campus_bridge`,
    and choose collation `utf8mb4_unicode_ci`.
 4. **Import the tables, then the data:** select the `campus_bridge` database, open **Import**, and import
-   `database/schema.sql` first, then `database/seed.sql`.
+   `backend/database/schema.sql` first, then `backend/database/seed.sql`.
 5. **Set your MySQL password** if it is not the AMPPS default (`mysql`): copy
-   `src/config.local.example.php` to `src/config.local.php` and enter your password. This file is
-   git-ignored, so your password is never pushed.
-6. Open **http://localhost/campus_bridge/public/**. Opening http://localhost/campus_bridge/ also redirects there.
-7. **Start the scan worker** in a terminal in the project folder: `php bin/scan-worker.php` (leave it
+   `backend/src/config.local.example.php` to `backend/src/config.local.php` and enter your password. This
+   file is git-ignored, so your password is never pushed.
+6. **Check the API:** http://localhost/campus_bridge/backend/public/api/session should show some JSON
+   like `{"user":null,"csrf_token":"…"}`.
+7. **Start the React app** in a terminal:
+   ```bash
+   cd frontend
+   npm install                     # once
+   # Windows PowerShell:  $env:API_PROXY_TARGET="http://localhost/campus_bridge/backend/public"; npm run dev
+   API_PROXY_TARGET=http://localhost/campus_bridge/backend/public npm run dev
+   ```
+   Open **http://localhost:5173**. Vite forwards every `/api/...` request to AMPPS.
+8. **Start the scan worker** in another terminal: `php backend/bin/scan-worker.php` (leave it
    running). Without it, uploaded resources stay at "check in progress". For a one-off run use
-   `php bin/scan-worker.php --once`. Reading Office files needs PHP's `zip` extension (enable it in AMPPS's
-   PHP settings); without it the scanner asks the rep to check those files by eye. For uploads up to 10 MB,
-   set `upload_max_filesize = 10M` and `post_max_size = 12M` in AMPPS's PHP settings.
+   `php backend/bin/scan-worker.php --once`. Reading Office files needs PHP's `zip` extension (enable it in
+   AMPPS's PHP settings); without it the scanner asks the rep to check those files by eye. For uploads up to
+   10 MB, set `upload_max_filesize = 10M` and `post_max_size = 12M` in AMPPS's PHP settings.
+
+**No AMPPS?** Any PHP 8.2 can serve the API: `php -S localhost:8000 -t backend/public backend/public/index.php`,
+then `npm run dev` in `frontend/` (it proxies to `http://localhost:8000` by default). If Windows says port
+8000 is not allowed, pick another port and set `API_PROXY_TARGET` to match.
 
 **Troubleshooting**
 
-- *"CampusBridge could not connect to its database"*: MySQL is not running, the database is not
-  imported, or the password in `config.local.php` is wrong.
+- *"CampusBridge cannot reach its database"*: MySQL is not running, the database is not imported, or
+  the password in `config.local.php` is wrong.
+- *"CampusBridge is not available"* in the React app: the API is not running, or `API_PROXY_TARGET`
+  points to the wrong address. Open the address from step 6 to check.
 - *Sample dates look old*: the sample dates are relative to the day you imported `seed.sql`.
   Re-import both files to refresh them.
-- To see detailed errors while developing, set `'debug' => true` in `src/config.local.php`.
+- To see detailed errors while developing, set `'debug' => true` in `backend/src/config.local.php`;
+  error answers from the API then include a `debug` message.
 
 ---
 
@@ -194,11 +221,11 @@ try *Inter-Year Football Tournament* as the Hillside vs the Riverside student.
 
 **Resources.** Students share files on **Resources → Share a resource** and sign an intellectual-property
 declaration (who created it, credits, licence, three confirmations and a typed signature). The file is
-stored outside `public/` (`storage/uploads/`) under a random name and stays private until the rep of the
+stored outside the web root (`backend/storage/uploads/`) under a random name and stays private until the rep of the
 chosen organization publishes it on their **Manage** page. Reps can take a public resource down, and
 publish it again, at any time. Uploads are limited to 10 MB and the file type is checked from its content.
 
-**Automatic privacy & copyright check.** A background worker (`bin/scan-worker.php`) picks up every new
+**Automatic privacy & copyright check.** A background worker (`backend/bin/scan-worker.php`) picks up every new
 upload, reads its text (TXT/MD, PDF, Word, PowerPoint, Excel and text files inside ZIPs) and shows the rep
 what to look at before publishing. Like the admin review hints, it never decides by itself.
 
@@ -219,95 +246,149 @@ and admins are assigned in the database (`users.role` and `users.organization_id
 
 ## 7. How the code is organized
 
+The project is split in two:
+
+- **`frontend/`** — a **React** app. It draws every page in the browser and never touches the database.
+- **`backend/`** — a **plain PHP** JSON API (no framework). It owns all the rules: accounts, roles,
+  search, recommendations, deadlines, clash detection, validation and every SQL query.
+
+They talk over HTTP: React calls addresses like `GET /api/events/5` and gets JSON back.
+
 ```
 campus_bridge/
-├── public/                  ← the ONLY folder the web server shows to browsers
-│   ├── index.php            home page
-│   ├── explore.php          search
-│   ├── opportunity.php      one opportunity (?id=…)
-│   ├── event.php            one event (?id=…)
-│   ├── organization.php     one organization (?id=…)
-│   ├── events.php           events grouped by day
-│   ├── organizations.php    organization directory
-│   ├── login.php / register.php / logout.php
-│   ├── dashboard.php / saved.php / calendar.php / calendar-export.php / preferences.php
-│   ├── toggle.php           handles Save / I'm interested / Follow buttons
-│   ├── manage.php / manage-event.php / manage-event-delete.php   (org reps)
-│   ├── admin.php / admin-review.php                              (admins)
-│   ├── about.php / not-found.php
-│   └── assets/              app.css, app.js, icon.svg
-├── src/                     PHP functions (no HTML)
-│   ├── bootstrap.php        loaded first by every page
-│   ├── config.php           settings (database, time zone)
-│   ├── database.php         PDO connection + fetch_all / fetch_one / execute
-│   ├── helpers.php          e(), url(), redirect(), flash messages, reading input
-│   ├── security.php         sessions, CSRF tokens, security headers
-│   ├── auth.php             sign in/out, current_user(), require_role()
-│   ├── taxonomy.php         category and interest labels
-│   ├── dates.php            time-zone-aware date helpers
-│   ├── deadlines.php        urgency buckets for deadlines
-│   ├── schedule.php         clash detection
-│   ├── recommend.php        the recommendation rules
-│   ├── search.php           the search engine and filters
-│   ├── ics.php              calendar export
-│   ├── moderation.php       review hints for admins
-│   ├── analytics.php        numbers for the charts
-│   ├── validation.php       form checking
-│   └── data/                ALL SQL lives here: organizations, opportunities, events, users, interests
-├── templates/               shared HTML: header, footer, cards, error pages
-├── database/
-│   ├── schema.sql           creates the tables
-│   └── seed.sql             fictional sample data + demo accounts
-├── tests/
-│   ├── Unit/                tests for the logic (no database needed)
-│   ├── Feature/             tests that run the real website against a test database
-│   └── Support/             test helpers
-├── docker/Dockerfile        the Apache + PHP image
-├── docker-compose.yml       website + MySQL + phpMyAdmin
-├── composer.json            only needed for running the tests (PHPUnit)
-└── .github/workflows/ci.yml automatic checks on GitHub
+├── frontend/                    THE REACT APP (what users see)
+│   ├── index.html               the one HTML page; React fills <div id="root">
+│   ├── vite.config.js           dev server + proxy that forwards /api/... to the PHP backend
+│   ├── package.json             React, React Router, Vite (exact versions)
+│   ├── public/icon.svg
+│   └── src/
+│       ├── main.jsx             starts React
+│       ├── App.jsx              which page for which address (React Router)
+│       ├── api.js               fetch() wrapper: JSON, CSRF header, errors, safeReturnPath()
+│       ├── session.jsx          signed-in user, fixed lists ("meta") and flash messages, shared by all pages
+│       ├── hooks.js             useApi() loads data, useTitle(), useFocusFirstError()
+│       ├── components/          Layout (header/footer), cards, ToggleButton, BarChart, small UI pieces
+│       ├── pages/               Home, Explore, Details, Lists, Account, Student, Manage, Admin, Resources, About
+│       └── styles/app.css       the stylesheet (unchanged class names from the PHP version)
+├── backend/                     THE PHP API
+│   ├── public/                  ← the ONLY folder the web server shows
+│   │   ├── index.php            front controller: every /api/... request starts here
+│   │   └── .htaccess            sends every address to index.php
+│   ├── src/
+│   │   ├── bootstrap.php        loaded first: functions, time zone, JSON errors, session
+│   │   ├── http/router.php      a 50-line router: route('GET', '/api/events/{id}', fn…)
+│   │   ├── http/responses.php   send_json(), abort(404, '…'), form-error answers
+│   │   ├── http/present.php     turns database rows into the JSON the pages show
+│   │   ├── routes/              one file per area: account, catalogue, student, resources, manage, admin
+│   │   ├── config.php           settings (database, time zone)
+│   │   ├── database.php         PDO connection + fetch_all / fetch_one / execute
+│   │   ├── helpers.php          reading JSON / form input, lines(), plural()
+│   │   ├── security.php         sessions, CSRF tokens, security headers
+│   │   ├── auth.php             sign in/out, current_user(), require_role()
+│   │   ├── taxonomy.php         category and interest labels
+│   │   ├── dates.php            time-zone-aware date helpers
+│   │   ├── deadlines.php        urgency buckets for deadlines
+│   │   ├── schedule.php         clash detection
+│   │   ├── recommend.php        the recommendation rules
+│   │   ├── search.php           the search engine and filters
+│   │   ├── ics.php              calendar export
+│   │   ├── moderation.php       review hints for admins
+│   │   ├── analytics.php        numbers for the charts
+│   │   ├── validation.php       form checking
+│   │   ├── resource_scan.php    the privacy & copyright scanner
+│   │   └── data/                ALL SQL lives here: organizations, opportunities, events, users, resources…
+│   ├── bin/scan-worker.php      background worker that runs the scanner
+│   ├── database/
+│   │   ├── schema.sql           creates the tables
+│   │   └── seed.sql             fictional sample data + demo accounts
+│   ├── storage/uploads/         uploaded files (outside public/, git-ignored)
+│   ├── tests/
+│   │   ├── Unit/                tests for the logic (no database needed)
+│   │   ├── Feature/             tests that call the real API against a test database
+│   │   └── Support/             test helpers (a tiny API client)
+│   ├── docker/Dockerfile        the Apache + PHP image
+│   └── composer.json            only needed for running the tests (PHPUnit)
+├── docker-compose.yml           React (web) + API + worker + MySQL + phpMyAdmin
+└── .github/workflows/ci.yml     automatic checks on GitHub (backend tests, frontend build)
 ```
+
+### The API
+
+Every answer is JSON. Errors look like `{"error": "…"}`, and form errors add one message per field:
+`{"error": "Please fix 2 fields below.", "errors": {"title": "Title must be at least 5 characters."}}`.
+
+| Method & address                         | Who            | What                                             |
+| ---------------------------------------- | -------------- | ------------------------------------------------ |
+| `GET /api/session`                       | anyone         | Signed-in user (or `null`) and the CSRF token    |
+| `GET /api/meta`                          | anyone         | Fixed lists: interests, categories, campuses, licences… |
+| `POST /api/login` · `/api/logout` · `/api/register` | anyone | Accounts                                   |
+| `GET /api/home` · `/api/explore?q=…`     | anyone         | Home highlights, search with filters             |
+| `GET /api/opportunities/{id}` · `/api/events/{id}` · `/api/organizations/{id}` | anyone | Detail pages |
+| `GET /api/events?category=…` · `/api/organizations?category=…` | anyone | Lists                          |
+| `POST /api/toggle`                       | signed in      | Save / I'm interested / Follow (press again to undo) |
+| `GET /api/dashboard` · `/api/saved` · `/api/calendar?month=…` · `/api/calendar.ics` | signed in | Personal pages |
+| `GET /api/preferences` · `PUT /api/preferences/interests` · `POST /api/preferences/reset` | signed in | Preferences |
+| `GET /api/resources` · `GET /api/resources/{id}/download` | anyone (rules apply) | Shared resources       |
+| `GET /api/resources/options` · `POST /api/resources` | students | Upload a resource with the IP declaration       |
+| `GET /api/manage` · `GET/POST/PUT/DELETE /api/manage/events…` · `POST /api/manage/resources/{id}` | org reps | Own events and resource reviews |
+| `GET /api/admin` · `POST /api/admin/review` | admins      | Review queue and analytics                       |
 
 ### The life of one request
 
-What happens when someone opens `explore.php?q=data`:
+What happens when someone types "data" into the Explore search:
 
 ```mermaid
 sequenceDiagram
-    participant B as Browser
-    participant A as Apache
-    participant P as public/explore.php
-    participant S as src/ functions
+    participant B as Browser (React)
+    participant V as Vite proxy
+    participant P as backend/public/index.php
+    participant S as backend/src functions
     participant D as MySQL
 
-    B->>A: GET /explore.php?q=data
-    A->>P: run the PHP file
-    P->>S: require bootstrap.php (load functions, start session)
+    B->>B: Explore.jsx puts ?q=data in the address bar
+    B->>V: fetch GET /api/explore?q=data (session cookie sent automatically)
+    V->>P: forward to the PHP server
+    P->>S: bootstrap.php (load functions, start session), dispatch() finds the route
     P->>S: read_explore_filters($_GET) — check every URL value
     P->>D: get_opportunities(), get_events(), get_organizations() (prepared SQL)
     D-->>P: rows
     P->>S: build_search_index() + run_search() — score and sort
-    P->>P: header.php + cards + footer.php (every value passed through e())
-    P-->>B: finished HTML page
+    P->>S: present_opportunity() / present_event() … — labels, "5 days left", is_saved
+    P-->>B: JSON {filters, counts, results}
+    B->>B: React draws the cards (every value escaped automatically)
 ```
 
-Every page follows the same simple pattern:
+Every API route follows the same simple pattern (`backend/src/routes/`):
 
 ```php
-<?php
-require __DIR__ . '/../src/bootstrap.php';   // 1. load everything
-$user = require_login();                      // 2. check who is allowed (if needed)
-$events = get_events();                       // 3. get data
-$pageTitle = 'Campus events';
-require __DIR__ . '/../templates/header.php'; // 4. print the page
-?>
-<h1>…</h1>
-<?php require __DIR__ . '/../templates/footer.php'; ?>
+route('GET', '/api/saved', function (): array {
+    $user = require_login();                              // 1. check who is allowed (401/403 otherwise)
+    $profile = get_student_profile((int) $user['id']);    // 2. get data (prepared SQL in src/data/)
+    $events = get_events();
+    return ['events' => array_map(...present_event...)];  // 3. return an array: it is sent as JSON
+});
 ```
 
-Forms that **change** data use **Post/Redirect/Get**: the form POSTs to a PHP file, which checks
-the CSRF token and permissions, updates the database, sets a flash message and redirects to a
-normal page.
+And every React page follows this one (`frontend/src/pages/`):
+
+```jsx
+export function Saved() {
+    const result = useApi('/api/saved');                  // 1. ask the API
+    return (
+        <ApiView result={result}>                         {/* 2. loading / 401 → sign in / 404 / error */}
+            {(data) => <ul>{data.events.map(...)}</ul>}   {/* 3. draw the data */}
+        </ApiView>
+    );
+}
+```
+
+Requests that **change** data (`POST`, `PUT`, `DELETE`) carry the CSRF token in an `X-CSRF-Token`
+header. The API checks it, checks permissions, updates the database and answers with a `message`
+that React shows at the top of the page.
+
+**Why keep all the logic in PHP?** React only displays what the API sends: dates are already in campus
+time, labels such as "5 days left" are already worked out, and `is_saved` is already set. The rules live
+in one place, the PHP tests cover them, and the viva story for the algorithms is unchanged.
 
 ---
 
@@ -348,34 +429,45 @@ erDiagram
 
 | Threat                        | What could go wrong                                      | How CampusBridge prevents it                                   | Where |
 | ----------------------------- | -------------------------------------------------------- | -------------------------------------------------------------- | ----- |
-| SQL injection                 | Typed text changes an SQL query                          | Every query uses PDO **prepared statements** with `?` placeholders | `src/database.php`, `src/data/` |
-| Cross-site scripting (XSS)    | Someone stores `<script>` in a title                     | Every printed value goes through `e()` (`htmlspecialchars`); a strict **Content-Security-Policy** blocks inline scripts | `src/helpers.php`, `src/security.php` |
-| Cross-site request forgery (CSRF) | Another site submits a form while you are signed in  | A secret token in every POST form, checked with `hash_equals` | `src/security.php` |
-| Stolen passwords              | Database leak reveals passwords                          | `password_hash()` (bcrypt with a random salt) and `password_verify()` | `src/data/users.php`, `src/auth.php` |
-| Password guessing             | Unlimited sign-in attempts                               | A 30-second pause after 5 failures; the same message for a wrong email or password | `public/login.php` |
-| Session hijacking or fixation | Someone steals or plants a session ID                    | HttpOnly + SameSite cookies; a new session ID after sign-in   | `src/security.php`, `src/auth.php` |
-| Broken access control         | A student opens the admin page, or a rep edits another club's event | `require_role()` on every protected page; ownership checked in SQL (`WHERE id = ? AND organization_id = ?`) | `src/auth.php`, `public/manage-event.php` |
-| Open redirect                 | A link sends people to a fake site after sign-in         | `safe_return_path()` only allows local paths                   | `src/helpers.php` |
-| Clickjacking                  | Our pages are shown inside another site's frame          | `X-Frame-Options: DENY` and `frame-ancestors 'none'`           | `src/security.php` |
-| Exposed source code           | Browsers download `src/` or `database/`                  | Only `public/` is the web root; other folders have `Require all denied` | `.htaccess` files, `docker/Dockerfile` |
-| Leaked secrets                | Passwords pushed to GitHub                               | `src/config.local.php` and `.env` are git-ignored              | `.gitignore` |
-| Unsafe external links         | A `javascript:` link, or a new tab that controls ours    | Only `https://` links are clickable; `rel="noopener noreferrer"` | `public/opportunity.php` |
+Paths are inside `backend/src/` unless they start with `frontend/`.
+
+| Threat                        | What could go wrong                                      | How CampusBridge prevents it                                   | Where |
+| ----------------------------- | -------------------------------------------------------- | -------------------------------------------------------------- | ----- |
+| SQL injection                 | Typed text changes an SQL query                          | Every query uses PDO **prepared statements** with `?` placeholders | `database.php`, `data/` |
+| Cross-site scripting (XSS)    | Someone stores `<script>` in a title                     | React escapes every `{value}` it draws, and we never use `dangerouslySetInnerHTML`; the API sends JSON with `nosniff` and encodes `<` `>` as `<` `>` | `frontend/src/components/ui.jsx`, `http/responses.php` |
+| Cross-site request forgery (CSRF) | Another site sends a request while you are signed in | A secret token from `GET /api/session`, sent back in an `X-CSRF-Token` header and checked with `hash_equals` on every POST/PUT/DELETE | `security.php`, `http/router.php`, `frontend/src/api.js` |
+| Stolen passwords              | Database leak reveals passwords                          | `password_hash()` (bcrypt with a random salt) and `password_verify()`; the hash never leaves the server (`present_user()`) | `data/users.php`, `auth.php` |
+| Password guessing             | Unlimited sign-in attempts                               | A 30-second pause after 5 failures; the same message for a wrong email or password | `routes/account.php` |
+| Session hijacking or fixation | Someone steals or plants a session ID                    | HttpOnly + SameSite cookies (React cannot read them either); a new session ID after sign-in | `security.php`, `auth.php` |
+| Broken access control         | A student calls the admin API, or a rep edits another club's event | `require_role()` in every protected route (401/403); ownership checked in SQL (`WHERE id = ? AND organization_id = ?`). Hiding a link in React is never the protection | `auth.php`, `routes/manage.php` |
+| Open redirect                 | A link sends people to a fake site after sign-in         | `safeReturnPath()` only allows local paths                     | `frontend/src/api.js` |
+| Clickjacking                  | Our pages are shown inside another site's frame          | `X-Frame-Options: DENY` and `frame-ancestors 'none'`           | `security.php` |
+| Exposed source code           | Browsers download `src/` or `database/`                  | Only `backend/public/` (just `index.php`) is the web root; other folders have `Require all denied` | `.htaccess` files, `docker/Dockerfile` |
+| Leaked secrets                | Passwords pushed to GitHub                               | `config.local.php` and `.env` are git-ignored                  | `.gitignore` |
+| Unsafe external links         | A `javascript:` link, or a new tab that controls ours    | The API only sends `https://` links (`source.url` is `null` otherwise); `rel="noopener noreferrer"` | `http/present.php`, `frontend/src/pages/Details.jsx` |
+| Unsafe uploads                | An uploaded HTML/SVG file runs as part of our site       | File type checked from its content; files stored outside the web root and always sent as a download | `data/resources.php`, `routes/resources.php` |
 
 ---
 
 ## 10. Testing
 
-| Suite             | What it checks                                                                                           | Tests |
-| ----------------- | -------------------------------------------------------------------------------------------------------- | ----- |
-| `tests/Unit`      | Recommendation rules, search scoring and typos, filters from the URL, dates, deadlines, clash detection, `.ics`, moderation, analytics, validation, `e()`, safe redirects | 48 |
-| `tests/Feature`   | The real website against a separate test database: every public page, 404s, XSS escaping, security headers, sign-up, sign-in, CSRF rejection, open-redirect blocking, saving, recommendations, calendar clashes, `.ics` download, follows, role restrictions, the full submit → review → publish workflow, ownership checks | 29 |
+All tests live in `backend/tests/` and run with PHPUnit.
+
+| Suite             | What it checks                                                                                           |
+| ----------------- | -------------------------------------------------------------------------------------------------------- |
+| `tests/Unit`      | Recommendation rules, search scoring and typos, filters from the URL, dates, deadlines, clash detection, `.ics`, moderation, analytics, validation, the resource scanner, the router's `{id}` matching, the presenters (unsafe links and colours removed) |
+| `tests/Feature`   | The real API against a separate test database, called the way React calls it: every public endpoint, 404/401/403/405 answers, JSON encoding of `<script>`, security headers, sign-up, sign-in, CSRF rejection, saving, recommendations, calendar clashes, `.ics` download, follows, campus-only events, role restrictions, the submit → review → publish workflow, ownership checks, resource uploads, the IP declaration and the scan worker |
+
+The React app is checked by `npm run build` in CI. It has no automated UI tests yet (see "Not yet tested").
 
 ### Run the tests
 
 The tests need **Composer** (for PHPUnit) and, for feature tests, a **MySQL server**. Feature
 tests create and delete their own database called `campus_bridge_test`; your real data is never touched.
+Run these commands inside `backend/`:
 
 ```bash
+cd backend
 composer install            # once; or: docker run --rm -v "$PWD":/app -w /app composer:2 install
 
 # With Docker's MySQL (docker compose up must be running):
@@ -391,18 +483,25 @@ On Windows PowerShell, set the variables first: `$env:TEST_DB_PASSWORD="…"; ve
 
 ### Last results (18 November 2026, Windows 11, PHP 8.2.33, MySQL 8.0)
 
+After the split into `frontend/` and `backend/`:
+
 - `php -l` on every PHP file: no syntax errors
-- `vendor/bin/phpunit`: **77 tests, 206 assertions, all passing** (48 unit, 29 feature)
-- Docker: site, 404 page and phpMyAdmin respond, `src/` is not reachable from the browser
-- `composer audit`: no known vulnerabilities
-- Checked by hand: AMPPS-style sub-folder install (`/campus_bridge/public/`) with links, styles and sign-in working; desktop and phone layouts
+- `vendor/bin/phpunit`: **97 tests, 312 assertions, all passing** (1 skipped locally: reading Word
+  files needs PHP's `zip` extension, which CI installs)
+- `npm run build`: the React app builds without errors
+- Checked through the Vite proxy with `curl`: session cookie and CSRF token, sign-in, dashboard JSON,
+  `.ics` download and React Router addresses all answer correctly
+- `npm audit`: one remaining advisory, in `picomatch` (a build-time dependency of Vite, no fixed version
+  yet); it is never sent to the browser
 
 ### Not yet tested
 
-- Automated accessibility scanning (axe) and cross-browser tests. Check by hand: keyboard-only
-  navigation, a screen reader (NVDA or VoiceOver), 200% zoom, Firefox and Safari.
-- A full run inside AMPPS's own Apache. The sub-folder layout was simulated with PHP's built-in
-  server; please confirm on one teammate's AMPPS.
+- **Clicking through the React pages in a browser.** The API is covered by tests and the app builds, but
+  nobody has yet opened every page, filled every form and compared it with the PHP version. Do this
+  before the demo, on desktop and phone widths.
+- The Docker setup and an AMPPS install after the split (`docker compose up --build`; AMPPS steps above).
+- Automated accessibility scanning (axe), React UI tests and cross-browser tests. Check by hand:
+  keyboard-only navigation, a screen reader (NVDA or VoiceOver), 200% zoom, Firefox and Safari.
 
 ---
 
@@ -414,11 +513,11 @@ Each member owns an area, writes its tests, and **reviews someone else's area**.
 
 | Member                          | Owns                                                            | Reviews  |
 | ------------------------------- | --------------------------------------------------------------- | -------- |
-| 1 — Coordinator & architecture  | `src/bootstrap.php`, `config.php`, `database.php`, Docker, CI   | Member 5 |
-| 2 — Design & accessibility      | `templates/`, `public/assets/`, responsive layout               | Member 3 |
-| 3 — Discovery & recommendations | `src/search.php`, `src/recommend.php`, `explore.php`, `dashboard.php` | Member 4 |
-| 4 — Events, calendar & clubs    | `src/schedule.php`, `ics.php`, `deadlines.php`, events, calendar, organizations | Member 1 |
-| 5 — Accounts, roles & data      | `src/auth.php`, `security.php`, `validation.php`, `src/data/`, `database/`, manage/admin pages, tests | Member 2 |
+| 1 — Coordinator & architecture  | `backend/public/index.php`, `src/http/`, `bootstrap.php`, `config.php`, `database.php`, Docker, CI | Member 5 |
+| 2 — Design & accessibility (React) | `frontend/src/components/`, `Layout.jsx`, `styles/app.css`, responsive layout | Member 3 |
+| 3 — Discovery & recommendations | `search.php`, `recommend.php`, `routes/catalogue.php`, `pages/Explore.jsx`, `pages/Home.jsx` | Member 4 |
+| 4 — Events, calendar & clubs    | `schedule.php`, `ics.php`, `deadlines.php`, `routes/student.php`, `pages/Student.jsx`, `pages/Lists.jsx` | Member 1 |
+| 5 — Accounts, roles & data      | `auth.php`, `security.php`, `validation.php`, `src/data/`, `database/`, `routes/manage.php`, `routes/admin.php`, `pages/Account.jsx`, tests | Member 2 |
 
 ### Git workflow
 
@@ -439,10 +538,17 @@ says **what it is**, **why we use it** and **where to find it in the code**.
 
 | Technology      | What it is, in one sentence                                                             | Why we chose it                                                                    |
 | --------------- | --------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------- |
-| **HTML**        | The structure of a page (headings, lists, forms).                                        | Every page is real HTML, so it works in any browser and with screen readers.       |
-| **CSS**         | Rules for how the HTML looks (colours, spacing, layout).                                 | One file, `app.css`, using CSS variables, Flexbox, Grid and media queries.         |
-| **JavaScript**  | Code that runs in the browser.                                                           | Used only for small extras (menu button, instant filters, confirm dialogs). The site works without it. |
-| **PHP 8.2**     | A language that runs **on the server** and builds the HTML before it is sent.           | It is taught in the course, runs everywhere, and needs no build step.              |
+| **HTML**        | The structure of a page (headings, lists, forms).                                        | React produces semantic HTML (headings, lists, `<nav>`, `<label>`) for screen readers. |
+| **CSS**         | Rules for how the HTML looks (colours, spacing, layout).                                 | One file, `frontend/src/styles/app.css`, using CSS variables, Flexbox, Grid and media queries. |
+| **JavaScript**  | Code that runs in the browser.                                                           | The whole frontend is JavaScript (React).                                          |
+| **React 18**    | A JavaScript library for building pages out of **components** that redraw when their data changes. | Pages update instantly (filters, Save buttons) without reloading, and each piece of UI is one reusable function. |
+| **JSX**         | HTML-like syntax inside JavaScript: `<h1>{event.title}</h1>`.                           | Easy to read; every `{value}` is escaped automatically, which prevents XSS.        |
+| **React Router**| Maps addresses such as `/events/5` to React pages, without reloading the page.          | Links can still be bookmarked and shared; Back and Refresh work.                    |
+| **Vite**        | The development server and build tool for the React app.                                 | Starts in a second, reloads on save, and its proxy sends `/api/...` to PHP.        |
+| **npm / Node.js** | JavaScript's package manager and runtime (only needed on the developer's computer).  | Installs React and Vite with exact, locked versions (`package-lock.json`).         |
+| **PHP 8.2**     | A language that runs **on the server**.                                                  | Our backend: it checks every request, runs the rules and the SQL, and answers with JSON. Taught in the course, no framework needed. |
+| **JSON**        | A text format for data: `{"title": "Hackathon", "id": 5}`.                               | The language React and PHP use to talk to each other (`json_encode` / `fetch`).    |
+| **REST-style API** | Addresses + HTTP methods that read (`GET`) or change (`POST`, `PUT`, `DELETE`) data.  | A clear contract between the two halves (see [The API](#the-api)).                 |
 | **MySQL 8**     | A relational database: data in tables linked by keys, queried with SQL.                 | Reliable, free, included in AMPPS, and the standard partner of PHP.                |
 | **PDO**         | PHP's built-in library for talking to databases.                                         | Supports prepared statements, which protect against SQL injection.                 |
 | **Apache**      | The web server that receives requests and runs our PHP files.                            | Included in AMPPS and in the Docker image; `.htaccess` lets us protect folders.    |
@@ -450,37 +556,51 @@ says **what it is**, **why we use it** and **where to find it in the code**.
 | **Docker**      | Runs software in "containers" with the exact same setup on every computer.               | One command gives every teammate the same PHP, Apache and MySQL versions.          |
 | **phpMyAdmin**  | A web page for looking at and editing a MySQL database.                                 | Handy for importing the SQL files and checking data during development.            |
 | **Composer**    | PHP's package manager.                                                                   | Only used to install PHPUnit for testing; the app itself has no dependencies.      |
-| **PHPUnit**     | PHP's standard testing tool.                                                             | Runs our 77 automated tests.                                                       |
+| **PHPUnit**     | PHP's standard testing tool.                                                             | Runs our 97 automated tests.                                                       |
 | **Git & GitHub**| Version control and online hosting for the code.                                          | Branches, pull requests, code review and history.                                  |
 | **GitHub Actions** | Runs our tests automatically on GitHub's computers.                                   | Every pull request is checked before it is merged (`.github/workflows/ci.yml`).    |
 
-**Why no framework (such as Laravel)?** Frameworks save time, but they hide a lot of behaviour
-behind conventions ("magic"). Plain PHP shows every step: the request, the SQL, the HTML. That is
-easier to explain in the viva and easier for beginners to follow.
+**Why React for the frontend?** The pages are interactive: filters apply as you click, Save buttons
+change without a reload, forms show errors next to each field. React keeps that logic in small
+components, and the server stays responsible for every rule.
+
+**Why plain PHP (no Laravel) for the backend?** Frameworks save time, but they hide a lot of behaviour
+behind conventions ("magic"). Plain PHP shows every step: the router (`src/http/router.php`, about
+50 lines), the SQL and the JSON. That is easier to explain in the viva and easier for beginners to
+follow. Laravel would give us a router, an ORM and validation out of the box; we wrote small versions
+of each ourselves instead.
 
 ### 12.2 How the web works
 
-- **Client and server.** The browser (client) asks for a page. The server (Apache + PHP) builds
-  the HTML and sends it back. PHP code never reaches the browser, only its output.
-- **HTTP request and response.** A request has a method (`GET`/`POST`), a URL and headers. A
-  response has a status code (`200 OK`, `302 Found` redirect, `403 Forbidden`, `404 Not Found`,
-  `500 Server Error`), headers and a body (the HTML).
-- **GET vs POST.** `GET` *reads* (search, open a page); its values are in the URL, so they can be
-  bookmarked. `POST` *changes* data (save, sign in); its values are in the request body. We never
-  change data with GET.
-- **Query string.** In `event.php?id=5`, the part after `?` holds values that PHP reads from `$_GET`.
-- **Status codes in our app:** missing items return 404 (`templates/not-found.php`), wrong roles
-  return 403 (`templates/forbidden.php`), and unexpected errors return 500 (`templates/error.php`).
+- **Client and server.** The browser (client) downloads the React app once. After that, React asks the
+  server (Apache + PHP) for **data** with `fetch()`, and draws the page itself. PHP code never reaches the
+  browser, only its JSON output.
+- **Single-page application (SPA).** There is one HTML page (`frontend/index.html`). Clicking a link
+  changes the address and swaps the React page without a full reload.
+- **HTTP request and response.** A request has a method (`GET`/`POST`/`PUT`/`DELETE`), a URL and headers. A
+  response has a status code, headers and a body (here: JSON).
+- **GET vs POST/PUT/DELETE.** `GET` *reads* (search, open a page); its values are in the URL, so they can be
+  bookmarked. The others *change* data; their values are in the request body. We never change data with GET.
+- **Query string.** In `/api/explore?q=data`, the part after `?` holds values that PHP reads from `$_GET`.
+- **Status codes in our API:** `200 OK`, `201 Created` (new account, event or upload), `400` bad request or
+  CSRF, `401` not signed in (React shows the sign-in page), `403` wrong role, `404` not found, `405` wrong
+  method, `413` file too large, `422` form errors, `429` too many sign-in attempts, `500` server error.
+- **Proxy.** In development, Vite (port 5173) forwards `/api/...` to PHP, so the browser sees one website
+  and sends the session cookie with every request.
 
 ### 12.3 PHP concepts used
 
-- **`require`** loads another PHP file. Every page starts with `require .../src/bootstrap.php`.
+- **`require`** loads another PHP file. `backend/public/index.php` requires `bootstrap.php` and the route files.
+- **Front controller.** One file (`index.php`) receives every request; `.htaccess` rewrites all addresses to it.
 - **Functions** group steps under a name (`get_events()`, `recommend()`). Pure logic is kept apart
-  from the database and the HTML, so it can be tested on its own.
-- **Associative arrays** are how rows come back from MySQL: `$event['title']`.
-- **Superglobals:** `$_GET` (URL values), `$_POST` (form values), `$_SESSION` (data remembered
-  between requests), `$_SERVER` (request details).
-- **Mixing PHP and HTML:** `<?= e($event['title']) ?>` prints a value; `<?php foreach (...): ?> … <?php endforeach; ?>` repeats HTML.
+  from the database and the JSON, so it can be tested on its own.
+- **Associative arrays** are how rows come back from MySQL (`$event['title']`) and what `json_encode()`
+  turns into JSON objects.
+- **Superglobals:** `$_GET` (URL values), `$_POST` and `$_FILES` (upload forms), `$_SESSION` (data remembered
+  between requests), `$_SERVER` (request details, including the `X-CSRF-Token` header).
+  JSON bodies are read from `php://input` (`request_input()` in `helpers.php`).
+- **Exceptions for errors.** `abort(404, '…')` throws an `HttpError`; `index.php` catches it and sends the
+  JSON error with the right status code.
 - **`DateTimeImmutable`** represents dates; "immutable" means methods return a *new* date
   instead of changing the old one, which prevents surprising bugs.
 - **Closures / arrow functions:** `fn ($e) => $e['status'] === 'published'` is a small unnamed
@@ -510,23 +630,38 @@ See the [Security table](#9-security). Be ready to explain these with code:
 - **SQL injection and prepared statements.** Unsafe: `"... WHERE email = '$email'"`. If `$email` is
   `' OR '1'='1`, the query changes meaning. Safe: `prepare('... WHERE email = ?')` then
   `execute([$email])`; the value is sent separately and can never become SQL.
-- **XSS and escaping.** `e()` turns `<` into `&lt;`, so `<script>` is shown as text instead of running.
-- **CSRF tokens.** A random secret in the session, copied into each form; `verify_csrf()` compares them.
+- **XSS and escaping.** React escapes every `{value}` in JSX, so `<script>` is shown as text instead of
+  running. We never use `dangerouslySetInnerHTML`.
+- **CSRF tokens.** A random secret in the session. React gets it from `GET /api/session` and sends it
+  in the `X-CSRF-Token` header; `verify_csrf()` compares them. Another website can neither read the
+  token nor add that header to a request to our site.
 - **Hashing vs encryption.** Hashing is one-way: we can check a password but never recover it.
   bcrypt adds a random **salt**, so two equal passwords get different hashes, and it is deliberately
   slow, which makes guessing expensive.
 - **Authentication vs authorization.** *Authentication* = who are you (sign-in). *Authorization* =
   what are you allowed to do (`require_role()`, ownership checks). Both happen on the server.
 - **Sessions and cookies.** The browser only holds a random session ID in a cookie; the data
-  (`user_id`) stays on the server. `HttpOnly` stops JavaScript reading the cookie.
+  (`user_id`) stays on the server. `HttpOnly` stops JavaScript (including React) reading the cookie.
+- **Never trust the client.** React hides the Admin link from students, but that is only convenience:
+  the API checks the role on every request.
 
 ### 12.6 Patterns and front-end concepts
 
-- **Post/Redirect/Get (PRG).** After a POST we redirect, so Refresh never resubmits the form (`public/toggle.php`).
-- **Flash messages.** A one-time message stored in the session and shown on the next page (`flash()` / `take_flash()`).
-- **Separation of concerns.** `public/` = pages, `src/data/` = SQL, `src/*.php` = logic, `templates/` = shared HTML.
-- **Progressive enhancement.** Everything works with plain links and forms; `app.js` only improves it.
-- **Responsive design.** One HTML page adapts with CSS **media queries**: three columns on desktop,
+- **Client–server split.** React (`frontend/`) only displays; PHP (`backend/`) decides. They share a
+  contract: the JSON API.
+- **Components and props.** `<EventCard event={e} />` is a function that receives data (props) and
+  returns HTML-like JSX. The same card is used on Home, Events, Explore and Organization pages.
+- **State and hooks.** `useState` remembers values that change (form fields, "is it saved?"); when state
+  changes, React redraws. `useEffect` runs code after drawing (e.g. loading data). Our own hook
+  `useApi(path)` loads JSON and reloads when the address changes.
+- **Context.** `SessionProvider` (`session.jsx`) shares the signed-in user and flash messages with every page.
+- **Presenters.** `present_event()` etc. (`src/http/present.php`) decide exactly which fields leave the
+  server, and prepare labels and dates so React does not repeat the rules.
+- **Flash messages.** A one-time message (`notify()` in `session.jsx`) shown at the top of the page after
+  an action, e.g. "Saved: Volta STEM Scholarship".
+- **Separation of concerns.** `src/data/` = SQL, `src/*.php` = logic, `src/routes/` = API addresses,
+  `frontend/src/pages/` = pages, `frontend/src/components/` = shared UI.
+- **Responsive design.** The same components adapt with CSS **media queries**: three columns on desktop,
   one on phones, and a menu button below 1080px.
 - **Accessibility.** Semantic HTML (headings, lists, `<nav>`, `<label>`), a skip link, visible focus
   outlines, `aria-pressed` on toggle buttons, `aria-invalid` and error messages linked to fields,
@@ -572,24 +707,26 @@ escaped, long lines are "folded" at 75 bytes, and deadlines become all-day entri
 ### 12.8 Testing concepts
 
 - **Unit test:** checks one function with made-up data, e.g. `find_clashes()` with three events.
-- **Feature test:** runs the real website (PHP's built-in server plus a test database) and acts like a
-  browser: sign in, submit forms, check the HTML and status codes.
+- **Feature (API) test:** runs the real API (PHP's built-in server plus a test database) and acts like
+  the React app: sign in, send JSON with the CSRF header, check the JSON and status codes.
 - **Why both?** Unit tests are fast and pinpoint logic bugs. Feature tests prove the pieces work
-  together, including security rules such as "a student gets 403 on `admin.php`".
+  together, including security rules such as "a student gets 403 on `/api/admin`".
 - **Continuous Integration (CI):** GitHub runs all tests on every pull request.
 
 ### 12.9 Practice questions (with short answers)
 
 1. **What happens, file by file, when a student clicks "Save" on an opportunity?**
-   The button's form POSTs to `toggle.php`. It checks the CSRF token and sign-in, checks the item
-   exists, then `toggle_link()` inserts or deletes the `saved_opportunities` row. A flash message
-   is set and the student is redirected back (PRG).
+   `ToggleButton` (`components/cards.jsx`) calls `api.post('/api/toggle', {kind, id})`, which adds the
+   `X-CSRF-Token` header. Vite forwards it to `backend/public/index.php`; `dispatch()` checks the token
+   and runs the route in `routes/student.php`. It checks sign-in, checks the item exists, then
+   `toggle_link()` inserts or deletes the `saved_opportunities` row and returns `{is_on, message}`.
+   React updates the button and shows the message.
 2. **How do you stop SQL injection?** Prepared statements with `?` placeholders (`src/database.php`).
-3. **A student changes the URL to `manage-event.php?id=4`. What stops them?**
+3. **A student sends `PUT /api/manage/events/4` by hand. What stops them?**
    `require_role('org_rep')` returns 403. An org rep editing another club's event gets 404 because
-   the query also requires `organization_id = ?`.
-4. **Why is `logout.php` POST-only?** So another website cannot sign you out with a simple link
-   or image (that would be CSRF).
+   the query also requires `organization_id = ?`. Hiding the button in React is not the protection.
+4. **Why is `/api/logout` POST-only?** So another website cannot sign you out with a simple link
+   or image (that would be CSRF). A `GET` answers 405.
 5. **Why do we store `password_hash` instead of the password?** If the database leaks, the
    passwords are still unknown. bcrypt is slow and salted.
 6. **Two events: 17:00–18:00 and 18:00–19:00. Clash?** No: `17:00 < 19:00` is true, but
@@ -599,15 +736,18 @@ escaped, long lines are "folded" at 75 bytes, and deadlines become all-day entri
    so an event is never saved without its interests.
 9. **Why does `scholarshp` still find "scholarship"?** The words are one edit apart (`levenshtein`),
    so they count as a typo match worth 0.4 × the field weight.
-10. **What does `e()` do and why is it everywhere?** It escapes HTML special characters to prevent XSS.
+10. **How does React prevent XSS?** Every `{value}` in JSX is inserted as text, never as HTML, so
+    `<script>` is displayed instead of run. We never use `dangerouslySetInnerHTML`.
 11. **How would you add a "salary" filter?** Add a column in `schema.sql`, include it in
-    `build_search_index()`, read it in `read_explore_filters()`, add a field to the form in
-    `explore.php`, and write a test.
-12. **How does the same code run on AMPPS and Docker?** Settings come from defaults,
-    `config.local.php` or environment variables, and `url()` builds links from the current folder.
+    `build_search_index()`, read it in `read_explore_filters()`, add a field to the filter form in
+    `pages/Explore.jsx`, and write a test.
+12. **How does the same code run on AMPPS and Docker?** PHP settings come from defaults,
+    `config.local.php` or environment variables; `request_path()` finds `/api/...` in any sub-folder;
+    Vite's `API_PROXY_TARGET` says where the API lives.
 13. **What is the difference between authentication and authorization?** Who you are vs what you may do.
-14. **Why does the app still work with JavaScript turned off?** All features are links and forms
-    handled on the server; JavaScript only adds conveniences.
+14. **Why is the logic in PHP and not in React?** Anything in the browser can be changed by the user,
+    so every rule must be checked on the server anyway. Keeping it only there means one copy of each rule,
+    covered by the PHP tests.
 15. **What would you change for thousands of opportunities?** Use MySQL `FULLTEXT` indexes or a
     search service instead of scoring everything in PHP, and add pagination.
 
@@ -647,7 +787,8 @@ Before recording: `docker compose down -v && docker compose up` for fresh sample
 ## 15. AI assistance and academic responsibility
 
 This codebase was produced with AI assistance (Anthropic's Claude, acting as a coding agent). That
-includes the original Next.js prototype and this PHP/MySQL rewrite, the tests and this README. The
+includes the original Next.js prototype, the PHP/MySQL rewrite, the split into a React frontend and a
+PHP API, the tests and this README. The
 course brief allows responsible AI use.
 
 The team is responsible for everything submitted. Each member should:
@@ -670,6 +811,10 @@ The team is responsible for everything submitted. Each member should:
 - **Sign-in throttling is per browser session:** a determined attacker could bypass it by
   discarding cookies. A real deployment should also limit attempts per account or IP address.
 - **Hypotheses are unvalidated** until the survey and interviews are done.
+- **JavaScript is required:** the React app does not work with JavaScript turned off (the old PHP pages did).
+- **No production build setup yet:** Docker runs the Vite development server. For a real deployment, run
+  `npm run build` and serve `frontend/dist/` from the same domain as the API (with `/api` routed to PHP),
+  and add a Content-Security-Policy header for the React pages.
 
 ---
 

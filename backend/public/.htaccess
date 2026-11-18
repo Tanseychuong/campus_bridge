@@ -1,0 +1,15 @@
+# Apache settings for the API (used by AMPPS and Docker).
+
+# Do not list folder contents.
+Options -Indexes
+
+# Never serve hidden files such as .htaccess or .env.
+<FilesMatch "^\.">
+    Require all denied
+</FilesMatch>
+
+# Send every request to index.php, which decides what to answer ("front controller").
+# Apache's mod_rewrite must be enabled (it is in AMPPS and in our Docker image).
+RewriteEngine On
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteRule ^ index.php [QSA,L]
