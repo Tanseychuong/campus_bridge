@@ -521,11 +521,11 @@ Each member owns an area, writes its tests, and **reviews someone else's area**.
 
 ### Git workflow
 
-1. Never work directly on `main`. Make a branch: `git switch -c feature/reminder-emails`.
+1. Never work directly on `master`. Make a branch: `git switch -c feature/reminder-emails`.
 2. Commit small steps with clear messages: `git commit -m "Add deadline filter to saved page"`.
 3. Push and open a **pull request**. Fill in the template, including "What did you learn?".
 4. A teammate reviews it, and the CI checks must pass before merging.
-5. Ask the repository owner to turn on **branch protection** for `main` (Settings → Branches).
+5. Ask the repository owner to turn on **branch protection** for `master` (Settings → Branches).
 
 ---
 
@@ -777,7 +777,7 @@ Before recording: `docker compose down -v && docker compose up` for fresh sample
 - [ ] OneDrive link submitted on **Canvas**
 - [ ] Code in the **public GitHub repository**
 - [ ] GitHub link submitted on **klenam.ai**
-- [ ] All tests pass and CI is green on `main`
+- [ ] All tests pass and CI is green on `master`
 - [ ] README updated with real survey results and team names
 - [ ] Every member has read the whole codebase and practised the viva questions
 - [ ] Demo accounts and passwords reviewed
