@@ -4,9 +4,11 @@
 
 ## How did you test it?
 
-- [ ] `vendor/bin/phpunit` passes (or explain why not)
+- [ ] `vendor/bin/phpunit` passes in `backend/` (or explain why not)
+- [ ] `npm run build` passes in `frontend/`
 - [ ] Opened the changed pages in a browser, including on a phone-sized window
-- [ ] Every printed value uses `e()`, every query uses `?` placeholders, every POST form has `csrf_field()`
+- [ ] Every query uses `?` placeholders, every API route that changes data checks the role/ownership,
+      and no React code uses `dangerouslySetInnerHTML`
 
 ## What should the reviewer look at?
 

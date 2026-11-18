@@ -11,10 +11,13 @@ permissions:
   contents: read
 
 jobs:
-  test:
-    name: PHP syntax, unit + feature tests, Docker build
+  backend:
+    name: Backend — PHP syntax, unit + API tests, Docker build
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: backend
 
     services:
       mysql:
@@ -41,7 +44,7 @@ jobs:
         run: composer install --no-interaction --no-progress
 
       - name: Check every PHP file for syntax errors
-        run: find src templates public tests bin -name '*.php' -print0 | xargs -0 -n1 php -l > /dev/null
+        run: find src public tests bin -name '*.php' -print0 | xargs -0 -n1 php -l > /dev/null
 
       - name: Run all tests
         env:
@@ -55,4 +58,28 @@ jobs:
         run: composer audit
 
       - name: Check that the Docker image builds
-        run: docker build -f docker/Dockerfile -t campusbridge-ci .
+        run: docker build -f docker/Dockerfile -t campusbridge-api-ci .
+
+  frontend:
+    name: Frontend — install and production build
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: frontend
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install packages exactly as locked
+        run: npm ci --no-audit --no-fund
+
+      - name: Build the React app
+        run: npm run build

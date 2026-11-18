@@ -1,0 +1,5 @@
+vendor
+tests
+storage/uploads
+.phpunit.cache
+.phpunit.result.cache

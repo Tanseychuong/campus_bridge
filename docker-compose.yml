@@ -1,17 +1,35 @@
 # CampusBridge with Docker — start everything with:  docker compose up --build
 #
-#   Website     http://localhost:8080
-#   phpMyAdmin  http://localhost:8081   (user: root, password: campusbridge-dev)
+#   Website (React)   http://localhost:8080
+#   API (PHP)         http://localhost:8000/api/session
+#   phpMyAdmin        http://localhost:8081   (user: root, password: campusbridge-dev)
 #
 # The passwords below are for LOCAL DEVELOPMENT ONLY. Never reuse them on a real server.
 
 services:
-  app:
+  # The React frontend (Vite dev server). It forwards /api/... to the "api" service,
+  # so the browser sees one website and the session cookie just works.
+  web:
+    image: node:20-alpine
+    working_dir: /app
+    command: sh -c "npm install --no-audit --no-fund && npm run dev -- --host 0.0.0.0 --port 5173"
+    ports:
+      - "8080:5173"
+    environment:
+      API_PROXY_TARGET: http://api
+    volumes:
+      - ./frontend:/app
+      - frontend-modules:/app/node_modules   # keep Linux packages separate from your computer's
+    depends_on:
+      - api
+
+  # The PHP backend: a JSON API answering /api/...
+  api:
     build:
-      context: .
+      context: ./backend
       dockerfile: docker/Dockerfile
     ports:
-      - "8080:80"
+      - "8000:80"
     environment:
       DB_HOST: db
       DB_PORT: "3306"
@@ -20,17 +38,17 @@ services:
       DB_PASSWORD: campusbridge-dev
       APP_DEBUG: "1"
     volumes:
-      # Your code is shared with the container, so edits show up after a page refresh.
-      - ./:/var/www/html
+      # The backend code is shared with the container, so edits apply on the next request.
+      - ./backend:/var/www/html
     depends_on:
       db:
         condition: service_healthy
 
   # Background worker: scans uploaded resources for possible privacy and copyright problems.
-  # Same image and code as the website; it just runs a different command.
+  # Same image and code as the API; it just runs a different command.
   worker:
     build:
-      context: .
+      context: ./backend
       dockerfile: docker/Dockerfile
     command: ["php", "bin/scan-worker.php"]
     working_dir: /var/www/html
@@ -42,7 +60,7 @@ services:
       DB_USER: root
       DB_PASSWORD: campusbridge-dev
     volumes:
-      - ./:/var/www/html
+      - ./backend:/var/www/html
     depends_on:
       db:
         condition: service_healthy
@@ -57,8 +75,8 @@ services:
       - "3307:3306"   # 3307 on your computer, so it does not clash with AMPPS MySQL on 3306
     volumes:
       # On the FIRST start, MySQL runs these files in alphabetical order.
-      - ./database/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql:ro
-      - ./database/seed.sql:/docker-entrypoint-initdb.d/02-seed.sql:ro
+      - ./backend/database/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql:ro
+      - ./backend/database/seed.sql:/docker-entrypoint-initdb.d/02-seed.sql:ro
       - db-data:/var/lib/mysql
     healthcheck:
       test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-uroot", "-pcampusbridge-dev"]
@@ -77,3 +95,4 @@ services:
 
 volumes:
   db-data:
+  frontend-modules:
