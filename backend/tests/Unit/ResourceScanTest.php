@@ -117,4 +117,18 @@ final class ResourceScanTest extends TestCase
         $this->assertSame('scan', $result['flags'][0]['kind']);
         $this->assertStringContainsString('Images cannot be read automatically', $result['flags'][0]['message']);
     }
+
+    public function test_a_failed_unfinished_or_serious_check_gives_a_rule_breach_warning(): void
+    {
+        $scanned = fn (string $status, array $flags) => ['scan_status' => $status, 'scan_flags' => json_encode($flags)];
+        $critical = ['severity' => 'critical', 'kind' => 'privacy', 'message' => 'Contains 3 email addresses.'];
+        $warning = ['severity' => 'warning', 'kind' => 'scan', 'message' => 'Very little readable text.'];
+
+        $this->assertStringContainsString('could not read this file', resource_breach_warning($scanned('failed', [$warning])));
+        $this->assertStringContainsString('has not finished yet', resource_breach_warning(['scan_status' => 'queued', 'scan_flags' => null]));
+        $this->assertStringContainsString('1 serious problem ', resource_breach_warning($scanned('done', [$critical, $warning])));
+        // Plain warnings and a clean result are left to the rep's judgement: no breach label.
+        $this->assertNull(resource_breach_warning($scanned('done', [$warning])));
+        $this->assertNull(resource_breach_warning($scanned('done', [])));
+    }
 }

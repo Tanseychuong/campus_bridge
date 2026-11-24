@@ -89,14 +89,26 @@ function get_resources_for_organization(int $organizationId): array
     );
 }
 
-/** Organizations that have a rep to review resources, grouped by campus: ['Hillside Campus' => [id => name, ...], ...]. */
-function get_reviewing_organizations(): array
+/** Every resource, for the admin's list: pending first, then newest. */
+function get_all_resources(): array
 {
+    return fetch_all(
+        RESOURCE_SELECT . " ORDER BY FIELD(resources.status, 'pending', 'published', 'hidden', 'rejected'), resources.id DESC"
+    );
+}
+
+/**
+ * Organizations a resource can be filed under, grouped by campus: ['Hillside Campus' => [id => name, ...], ...].
+ * Students may only pick organizations that have a rep to review it; admins may pick any ($withRepOnly false).
+ */
+function get_reviewing_organizations(bool $withRepOnly = true): array
+{
+    $repJoin = $withRepOnly ? "JOIN users ON users.organization_id = organizations.id AND users.role = 'org_rep'" : '';
     $rows = fetch_all(
         "SELECT DISTINCT organizations.id, organizations.name, campuses.name AS campus_name
            FROM organizations
            JOIN campuses ON campuses.id = organizations.campus_id
-           JOIN users ON users.organization_id = organizations.id AND users.role = 'org_rep'
+           $repJoin
           ORDER BY campuses.name, organizations.name"
     );
     $grouped = [];
@@ -158,8 +170,12 @@ function check_uploaded_file(?array $file): array
     return [null, $extension, $mime];
 }
 
-/** Saves the uploaded file and the resource row (status 'pending'). Returns the new id. */
-function create_resource(array $values, array $file, string $extension, string $mime, int $userId): int
+/**
+ * Saves the uploaded file and the resource row. Returns the new id.
+ * Students' uploads start 'pending'; an admin's upload is published at once
+ * ($publishNow), with the admin recorded as the reviewer. Both are still scanned.
+ */
+function create_resource(array $values, array $file, string $extension, string $mime, int $userId, bool $publishNow = false): int
 {
     $storedName = bin2hex(random_bytes(16)) . '.' . $extension;
     $target = upload_directory() . '/' . $storedName;
@@ -174,12 +190,13 @@ function create_resource(array $values, array $file, string $extension, string $
     try {
         execute(
             'INSERT INTO resources (title, description, organization_id, uploaded_by, stored_name, original_name, mime_type, file_size,
-                                    ip_ownership, ip_credits, license, declared_name, declared_at)
-             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, UTC_TIMESTAMP())',
+                                    ip_ownership, ip_credits, license, declared_name, declared_at, status, reviewed_by, reviewed_at)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, UTC_TIMESTAMP(), ?, ?, IF(? IS NULL, NULL, UTC_TIMESTAMP()))',
             [
                 $values['title'], $values['description'], (int) $values['organization_id'], $userId, $storedName, $originalName,
                 $mime, (int) $file['size'], $values['ip_ownership'], $values['ip_credits'] !== '' ? $values['ip_credits'] : null,
                 $values['license'], $values['declared_name'],
+                $publishNow ? 'published' : 'pending', $publishNow ? $userId : null, $publishNow ? $userId : null,
             ]
         );
     } catch (Throwable $error) {
@@ -196,6 +213,16 @@ function set_resource_status(int $id, string $status, ?string $note, int $review
         'UPDATE resources SET status = ?, review_note = ?, reviewed_by = ?, reviewed_at = UTC_TIMESTAMP() WHERE id = ?',
         [$status, $note, $reviewerId, $id]
     );
+}
+
+/** Removes a resource for good: the database row and the file on disk (admins only). */
+function delete_resource(array $resource): void
+{
+    execute('DELETE FROM resources WHERE id = ?', [(int) $resource['id']]);
+    $path = upload_directory() . '/' . basename($resource['stored_name']);
+    if (is_file($path)) {
+        @unlink($path);
+    }
 }
 
 /** "2.4 MB", "830 KB". */

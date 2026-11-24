@@ -65,8 +65,9 @@ const EVENT_VISIBILITY = [
 
 const ROLE_LABELS = [
     'student' => 'Student',
-    'org_rep' => 'Organization rep',
-    'admin'   => 'Administrator',
+    'org_rep'    => 'Organization rep',
+    'campus_rep' => 'Campus rep',
+    'admin'      => 'Administrator',
 ];
 
 /** Turns a list of interest keys into readable labels: "Research, Arts & Culture". */

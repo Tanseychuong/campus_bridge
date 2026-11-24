@@ -70,15 +70,24 @@ CREATE TABLE users (
     name            VARCHAR(80)  NOT NULL,
     email           VARCHAR(120) NOT NULL UNIQUE,
     password_hash   VARCHAR(255) NOT NULL,
-    role            ENUM('student','org_rep','admin') NOT NULL DEFAULT 'student',
+    -- campus_rep: approves the students who sign up for their campus.
+    role            ENUM('student','org_rep','campus_rep','admin') NOT NULL DEFAULT 'student',
     -- Only organization representatives belong to an organization.
     organization_id INT UNSIGNED NULL,
     -- Home campus. NULL for administrators, who see every campus.
     campus_id       TINYINT UNSIGNED NULL,
+    -- New students start 'pending' and cannot sign in until a campus rep (or an admin)
+    -- approves them. 'rejected' accounts cannot sign in; review_note says why.
+    status          ENUM('pending','active','rejected') NOT NULL DEFAULT 'active',
+    review_note     VARCHAR(300) NULL,
+    reviewed_by     INT UNSIGNED NULL,
+    reviewed_at     DATETIME     NULL,
     created_at      DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT fk_users_organization FOREIGN KEY (organization_id)
         REFERENCES organizations (id) ON DELETE SET NULL,
-    CONSTRAINT fk_users_campus FOREIGN KEY (campus_id) REFERENCES campuses (id)
+    CONSTRAINT fk_users_campus FOREIGN KEY (campus_id) REFERENCES campuses (id),
+    CONSTRAINT fk_users_reviewer FOREIGN KEY (reviewed_by) REFERENCES users (id) ON DELETE SET NULL,
+    INDEX idx_users_status (status, campus_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Scholarships, internships, competitions and so on.

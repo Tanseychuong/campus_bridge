@@ -15,17 +15,50 @@ function find_user_by_email(string $email): ?array
 }
 
 /**
- * Creates a student account and returns the new user's id.
+ * Creates a student account (status 'pending', waiting for a campus rep) and returns the new user's id.
  * password_hash() turns the password into a one-way bcrypt hash (with a random
  * "salt"), so even someone who reads the database cannot see the password.
  */
 function create_student_account(string $name, string $email, string $password, int $campusId): int
 {
     execute(
-        "INSERT INTO users (name, email, password_hash, role, campus_id) VALUES (?, ?, ?, 'student', ?)",
+        "INSERT INTO users (name, email, password_hash, role, campus_id, status) VALUES (?, ?, ?, 'student', ?, 'pending')",
         [$name, mb_strtolower(trim($email)), password_hash($password, PASSWORD_DEFAULT), $campusId]
     );
     return (int) db()->lastInsertId();
+}
+
+/**
+ * Student sign-ups a reviewer may decide on: pending first, then recent decisions.
+ * A campus rep sees only their own campus; an admin ($campusId null) sees every campus.
+ */
+function get_signups_for_review(?int $campusId): array
+{
+    $where = "users.role = 'student' AND (users.status = 'pending' OR users.reviewed_at > UTC_TIMESTAMP() - INTERVAL 30 DAY)";
+    $params = [];
+    if ($campusId !== null) {
+        $where .= ' AND users.campus_id = ?';
+        $params[] = $campusId;
+    }
+    return fetch_all(
+        "SELECT users.id, users.name, users.email, users.status, users.review_note, users.created_at, users.reviewed_at,
+                users.campus_id, campuses.name AS campus_name, reviewers.name AS reviewer_name
+           FROM users
+           JOIN campuses ON campuses.id = users.campus_id
+           LEFT JOIN users AS reviewers ON reviewers.id = users.reviewed_by
+          WHERE $where
+          ORDER BY FIELD(users.status, 'pending', 'active', 'rejected'), users.created_at DESC",
+        $params
+    );
+}
+
+/** A campus rep's (or admin's) decision on a sign-up: 'active' or 'rejected'. */
+function set_account_status(int $userId, string $status, ?string $note, int $reviewerId): void
+{
+    execute(
+        'UPDATE users SET status = ?, review_note = ?, reviewed_by = ?, reviewed_at = UTC_TIMESTAMP() WHERE id = ?',
+        [$status, $note, $reviewerId, $userId]
+    );
 }
 
 /**

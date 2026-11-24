@@ -22,11 +22,13 @@ function rep_and_organization(): array
 function present_scan(array $resource): array
 {
     $flags = resource_scan_flags($resource);
+    $warning = resource_breach_warning($resource); // "Potential rule breach" label, or null
     if ($flags === null) {
-        return ['state' => 'pending', 'flags' => [], 'critical_count' => 0];
+        return ['state' => 'pending', 'flags' => [], 'critical_count' => 0, 'breach_warning' => $warning];
     }
     return [
-        'state'          => $flags === [] ? 'clean' : 'flagged',
+        'breach_warning' => $warning,
+        'state'          => $resource['scan_status'] === 'failed' ? 'failed' : ($flags === [] ? 'clean' : 'flagged'),
         'flags'          => array_map(fn ($flag) => [
             'severity'   => $flag['severity'],
             'kind_label' => SCAN_KIND_LABELS[$flag['kind']] ?? 'Check',
@@ -185,6 +187,12 @@ route('POST', '/api/manage/resources/{id}', function (array $params): array {
     }
     if ($decision === 'reject' && mb_strlen($note) < 5) {
         abort(422, 'Please write a short reason (at least 5 characters) so the student knows what to fix.', ['note' => 'Write at least 5 characters.']);
+    }
+    // The automatic check failed, found serious problems or has not run yet:
+    // publishing is allowed only after the rep confirms they checked the file themselves.
+    $warning = resource_breach_warning($resource);
+    if ($decision === 'publish' && $warning !== null && input_text('confirm_breach') !== 'yes') {
+        abort(409, 'Potential rule breach: ' . $warning . ' Open the file, check it yourself, then confirm to publish.', ['confirm_breach' => 'Confirm that you checked the file yourself.']);
     }
 
     $newStatus = ['publish' => 'published', 'reject' => 'rejected', 'hide' => 'hidden'][$decision];
