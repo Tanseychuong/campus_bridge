@@ -66,10 +66,11 @@ const CONFIRMATIONS = [
 export function ResourceUpload() {
     useTitle('Share a resource');
     const result = useApi('/api/resources/options');
-    return <ApiView result={result}>{(data) => <UploadForm groups={data.groups} />}</ApiView>;
+    return <ApiView result={result}>{(data) => <UploadForm groups={data.groups} isAdmin={data.publishes_directly} />}</ApiView>;
 }
 
-function UploadForm({ groups }) {
+/** isAdmin: an administrator adding material; it is published straight away (still scanned). */
+function UploadForm({ groups, isAdmin }) {
     const { meta, notify } = useSession();
     const navigate = useNavigate();
     const [values, setValues] = useState({
@@ -98,7 +99,7 @@ function UploadForm({ groups }) {
         try {
             const answer = await api.post('/api/resources', form);
             notify(answer.message, 'success', true);
-            navigate('/resources');
+            navigate(isAdmin ? '/admin#materials' : '/resources');
         } catch (error) {
             setFailure({ message: error.message, errors: error.errors });
             setBusy(false);
@@ -107,10 +108,14 @@ function UploadForm({ groups }) {
 
     return (
         <div className="container page-form-wide">
-            <p className="back-link"><Link to="/resources">← Resources</Link></p>
+            <p className="back-link">{isAdmin ? <Link to="/admin#materials">← Admin</Link> : <Link to="/resources">← Resources</Link>}</p>
             <div className="card form-card">
-                <h1>Share a resource</h1>
-                <p className="muted">An automatic check looks for personal data and copyrighted material, then an organization rep reviews it before anyone else can see it.</p>
+                <h1>{isAdmin ? 'Add study material' : 'Share a resource'}</h1>
+                <p className="muted">
+                    {isAdmin
+                        ? 'As an administrator, what you add is public straight away. The automatic privacy & copyright check still runs; its result appears on the Admin page.'
+                        : 'An automatic check looks for personal data and copyrighted material, then an organization rep reviews it before anyone else can see it.'}
+                </p>
                 <FormAlert message={failure.message} />
 
                 {groups.length === 0 ? (
@@ -132,7 +137,7 @@ function UploadForm({ groups }) {
 
                         <div className="grid grid-2">
                             <div className="field">
-                                <label htmlFor="organization_id">Reviewed by <span className="required">*</span></label>
+                                <label htmlFor="organization_id">{isAdmin ? 'Organization' : 'Reviewed by'} <span className="required">*</span></label>
                                 <select id="organization_id" value={values.organization_id} onChange={set('organization_id')} {...errorProps(errors, 'organization_id')}>
                                     <option value="">Choose an organization…</option>
                                     {groups.map((group) => (
@@ -197,7 +202,7 @@ function UploadForm({ groups }) {
                         </fieldset>
 
                         <div className="button-row">
-                            <button className="button button-primary" type="submit" disabled={busy}>Submit for review</button>
+                            <button className="button button-primary" type="submit" disabled={busy}>{isAdmin ? 'Add and publish' : 'Submit for review'}</button>
                             <Link className="button button-secondary" to="/resources">Cancel</Link>
                         </div>
                     </form>

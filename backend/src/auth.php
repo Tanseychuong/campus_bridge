@@ -4,8 +4,13 @@
  *
  * Roles:
  *   student  - can save items, follow organizations and get recommendations
- *   org_rep  - can also create and edit events for THEIR organization
- *   admin    - can also approve or reject new listings and see analytics
+ *   org_rep    - can also create and edit events for THEIR organization
+ *   campus_rep - can also approve or reject students who sign up for THEIR campus
+ *   admin      - can also approve or reject new listings, any sign-up, and
+ *                add or remove study materials; sees analytics
+ *
+ * Account status: new students are 'pending' until a campus rep approves them.
+ * Only 'active' accounts can sign in (see attempt_login and current_user).
  *
  * Every role check happens here, on the server. Hiding a button in the
  * page is NOT security — the server must refuse the action itself.
@@ -19,6 +24,10 @@ function current_user(): ?array
     if ($user === false) {
         $userId = $_SESSION['user_id'] ?? null;
         $user = $userId ? find_user_by_id((int) $userId) : null;
+        // An account that is no longer active (e.g. rejected) loses its session straight away.
+        if ($user !== null && $user['status'] !== 'active') {
+            $user = null;
+        }
     }
     return $user;
 }
@@ -37,6 +46,7 @@ function has_role(string $role): bool
 /**
  * Checks an email and password. Returns the user if they match, else null.
  * password_verify() compares the password with the stored bcrypt hash.
+ * The caller must still check $user['status'] (see account_status_message).
  */
 function attempt_login(string $email, string $password): ?array
 {
@@ -45,6 +55,22 @@ function attempt_login(string $email, string $password): ?array
         return null;
     }
     return $user;
+}
+
+/**
+ * Why an account with the right password still cannot sign in, or null if it can.
+ * Only shown AFTER the password matched, so it never reveals which emails exist.
+ */
+function account_status_message(array $user): ?string
+{
+    if ($user['status'] === 'pending') {
+        return 'Your account is waiting for approval by your campus representative. You can sign in as soon as they approve it.';
+    }
+    if ($user['status'] === 'rejected') {
+        $reason = $user['review_note'] ? ' Reason: ' . $user['review_note'] : '';
+        return 'Your sign-up was not approved by your campus representative.' . $reason;
+    }
+    return null;
 }
 
 /** Marks the user as signed in for this browser session. */
@@ -99,5 +125,8 @@ function present_user(?array $user): ?array
         'role_label'      => ROLE_LABELS[$user['role']],
         'campus_id'       => $user['campus_id'] === null ? null : (int) $user['campus_id'],
         'organization_id' => $user['organization_id'] === null ? null : (int) $user['organization_id'],
+        // The file name in the address makes the browser fetch a new picture after a change.
+        'avatar_url'      => $user['avatar_name'] ? '/api/profile/avatar?v=' . $user['avatar_name'] : null,
+        'cover_url'       => $user['cover_name'] ? '/api/profile/cover?v=' . $user['cover_name'] : null,
     ];
 }

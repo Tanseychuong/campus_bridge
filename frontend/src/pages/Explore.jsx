@@ -13,8 +13,56 @@ import { useApi, useTitle } from '../hooks.js';
 import { useSession } from '../session.jsx';
 
 const TABS = [['all', 'All'], ['opportunity', 'Opportunities'], ['event', 'Events'], ['organization', 'Organizations']];
-const SORTS = [['relevance', 'Best match'], ['soonest', 'Soonest deadline / date'], ['newest', 'Newest']];
+const SORTS = [['relevance', 'Best match'], ['soonest', 'Soonest'], ['newest', 'Newest']];
 const WITHIN = [['any', 'Any time'], ['7', 'Within 7 days'], ['30', 'Within 30 days']];
+const WITHIN_SHORT = [['any', 'Any time'], ['7', '7 days'], ['30', '30 days']]; // the filter buttons are narrow
+
+/** The filters in use, as [{key, label, remove: parameters that switch it off}], for the chips above the results. */
+function activeFilters(filters, categoryLists, meta) {
+    const labelOf = (list, value) => list?.find((option) => option.value === value)?.label ?? value;
+    const active = [];
+    if (filters.category && filters.type !== 'all') {
+        active.push({ key: 'category', label: labelOf(categoryLists[filters.type], filters.category), remove: { category: '' } });
+    }
+    if (filters.mode) {
+        active.push({ key: 'mode', label: labelOf(meta.location_modes, filters.mode), remove: { mode: '' } });
+    }
+    if (filters.within && filters.within !== 'any') {
+        active.push({ key: 'within', label: WITHIN.find(([value]) => value === filters.within)?.[1] ?? '', remove: { within: '' } });
+    }
+    for (const interest of filters.interests) {
+        active.push({
+            key: `interest-${interest}`,
+            label: labelOf(meta.interests, interest),
+            remove: { interest: filters.interests.filter((i) => i !== interest) },
+        });
+    }
+    return active;
+}
+
+/** One titled section of the filters card. */
+function FilterGroup({ title, id, children }) {
+    return (
+        <fieldset className="filter-group" aria-labelledby={id}>
+            <legend className="filter-group-title" id={id}>{title}</legend>
+            {children}
+        </fieldset>
+    );
+}
+
+/** Radio buttons shown as pills: one choice out of a few. */
+function OptionPills({ name, options, value, onChange }) {
+    return (
+        <div className="option-pills">
+            {options.map(([optionValue, label]) => (
+                <label className="option-pill" key={optionValue}>
+                    <input type="radio" name={name} value={optionValue} checked={value === optionValue} onChange={() => onChange(optionValue)} />
+                    <span>{label}</span>
+                </label>
+            ))}
+        </div>
+    );
+}
 
 /** The address-bar parameters, as the PHP API expects them (lists are sent as interest[]=a&interest[]=b). */
 function apiQuery(params) {
@@ -47,6 +95,10 @@ export function Explore() {
             }
         }
         setParams(next);
+    }
+
+    function clearFilters() {
+        update({ interest: [], category: '', within: '', mode: '' });
     }
 
     function tabLink(type) {
@@ -90,46 +142,48 @@ export function Explore() {
 
                                         {/* Every change is applied straight away. */}
                                         <form className="card filters" onSubmit={(event) => event.preventDefault()}>
-                                            <div className="field">
-                                                <label htmlFor="sort">Sort by</label>
-                                                <select id="sort" value={filters.sort} onChange={(event) => update({ sort: event.target.value === 'relevance' ? '' : event.target.value })}>
-                                                    {SORTS.map(([value, label]) => <option key={value} value={value}>{label}</option>)}
-                                                </select>
+                                            <div className="filters-head">
+                                                <h2 className="filters-title">
+                                                    Filters{data.active_filter_count > 0 && <span className="filters-count">{data.active_filter_count}</span>}
+                                                </h2>
+                                                {data.active_filter_count > 0 && (
+                                                    <button type="button" className="link" onClick={clearFilters}>Clear all</button>
+                                                )}
                                             </div>
 
+                                            <FilterGroup title="Sort by" id="sort-title">
+                                                <OptionPills name="sort" options={SORTS} value={filters.sort}
+                                                    onChange={(value) => update({ sort: value === 'relevance' ? '' : value })} />
+                                            </FilterGroup>
+
                                             {filters.type !== 'all' && (
-                                                <div className="field">
-                                                    <label htmlFor="category">Category</label>
+                                                <FilterGroup title="Category" id="category-title">
+                                                    <label className="sr-only" htmlFor="category">Category</label>
                                                     <select id="category" value={filters.category} onChange={(event) => update({ category: event.target.value })}>
                                                         <option value="">All categories</option>
                                                         {categoryLists[filters.type].map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
                                                     </select>
-                                                </div>
+                                                </FilterGroup>
                                             )}
 
                                             {filters.type === 'opportunity' && (
-                                                <div className="field">
-                                                    <label htmlFor="mode">Location</label>
+                                                <FilterGroup title="Location" id="mode-title">
+                                                    <label className="sr-only" htmlFor="mode">Location</label>
                                                     <select id="mode" value={filters.mode} onChange={(event) => update({ mode: event.target.value })}>
                                                         <option value="">Any location</option>
                                                         {meta.location_modes.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
                                                     </select>
-                                                </div>
+                                                </FilterGroup>
                                             )}
 
                                             {filters.type !== 'organization' && (
-                                                <fieldset className="field">
-                                                    <legend>Deadline or date</legend>
-                                                    {WITHIN.map(([value, label]) => (
-                                                        <label className="radio" key={value}>
-                                                            <input type="radio" name="within" value={value} checked={filters.within === value} onChange={() => update({ within: value === 'any' ? '' : value })} /> {label}
-                                                        </label>
-                                                    ))}
-                                                </fieldset>
+                                                <FilterGroup title="Deadline or date" id="within-title">
+                                                    <OptionPills name="within" options={WITHIN_SHORT} value={filters.within}
+                                                        onChange={(value) => update({ within: value === 'any' ? '' : value })} />
+                                                </FilterGroup>
                                             )}
 
-                                            <fieldset className="field">
-                                                <legend>Interests</legend>
+                                            <FilterGroup title="Interests" id="interests-title">
                                                 <div className="chip-list">
                                                     {meta.interests.map((interest) => {
                                                         const checked = filters.interests.includes(interest.value);
@@ -142,13 +196,7 @@ export function Explore() {
                                                         );
                                                     })}
                                                 </div>
-                                            </fieldset>
-
-                                            {data.active_filter_count > 0 && (
-                                                <div className="button-row">
-                                                    <button type="button" className="link" onClick={() => update({ interest: [], category: '', within: '', mode: '' })}>Clear filters</button>
-                                                </div>
-                                            )}
+                                            </FilterGroup>
                                         </form>
                                     </details>
                                 </aside>
@@ -158,6 +206,22 @@ export function Explore() {
                                         {data.results.length} {data.results.length === 1 ? 'result' : 'results'}
                                         {filters.q !== '' && <> for “{filters.q}”</>}
                                     </h2>
+
+                                    {/* The filters in use, each removable with one click. */}
+                                    {(() => {
+                                        const active = activeFilters(filters, categoryLists, meta);
+                                        return active.length > 0 && (
+                                            <ul className="active-filters" aria-label="Filters in use">
+                                                {active.map(({ key, label, remove }) => (
+                                                    <li key={key}>
+                                                        <button type="button" className="active-filter" onClick={() => update(remove)} aria-label={`Remove filter: ${label}`}>
+                                                            {label} <span aria-hidden="true">×</span>
+                                                        </button>
+                                                    </li>
+                                                ))}
+                                            </ul>
+                                        );
+                                    })()}
 
                                     {data.results.length === 0 ? (
                                         <EmptyState

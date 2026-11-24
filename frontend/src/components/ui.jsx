@@ -11,10 +11,9 @@ import { Link, Navigate, useLocation } from 'react-router-dom';
 export function LogoMark() {
     return (
         <svg className="logo-mark" viewBox="0 0 32 32" aria-hidden="true">
-            <rect width="32" height="32" rx="9" fill="#2747bd" />
-            <path d="M6 22c2.5-7 6-10.5 10-10.5S23.5 15 26 22" fill="none" stroke="#efb23c" strokeWidth="2.6" strokeLinecap="round" />
-            <path d="M6 22h20" stroke="#fff" strokeWidth="2.2" strokeLinecap="round" />
-            <path d="M11 16.5V22M16 11.5V22M21 16.5V22" stroke="#fff" strokeWidth="1.6" strokeLinecap="round" opacity=".85" />
+            <rect width="32" height="32" rx="8" fill="#2747bd" />
+            <path d="M7 22c2.4-6.6 5.4-9.5 9-9.5s6.6 2.9 9 9.5" fill="none" stroke="#fff" strokeWidth="2.2" strokeLinecap="round" />
+            <path d="M7 22h18" stroke="#fff" strokeWidth="2" strokeLinecap="round" />
         </svg>
     );
 }

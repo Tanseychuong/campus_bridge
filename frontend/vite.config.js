@@ -1,4 +1,4 @@
-import { defineConfig } from 'vite';
+import { defineConfig, loadEnv } from 'vite';
 import react from '@vitejs/plugin-react';
 
 /*
@@ -11,15 +11,24 @@ import react from '@vitejs/plugin-react';
  *   Docker (docker-compose.yml)   API_PROXY_TARGET=http://api   (set for you)
  *   php -S localhost:8000 ...     http://localhost:8000          (the default)
  *   AMPPS                         http://localhost/campus_bridge/backend/public
+ *
+ * Set it in the shell, or once in frontend/.env.local (git-ignored):
+ *   API_PROXY_TARGET=http://localhost:8010
  */
-const apiTarget = process.env.API_PROXY_TARGET || 'http://localhost:8000';
+export default defineConfig(({ mode }) => {
+    const fileEnv = loadEnv(mode, process.cwd(), ''); // reads .env, .env.local, ...
+    const apiTarget = process.env.API_PROXY_TARGET || fileEnv.API_PROXY_TARGET || 'http://localhost:8000';
+    const proxy = {
+        '/api': { target: apiTarget, changeOrigin: true },
+    };
 
-const proxy = {
-    '/api': { target: apiTarget, changeOrigin: true },
-};
+    // In Docker on Windows/macOS, file-change events do not reach the container,
+    // so Vite must check for changes itself (VITE_POLL=1 is set in docker-compose.yml).
+    const watch = process.env.VITE_POLL === '1' ? { usePolling: true, interval: 300 } : undefined;
 
-export default defineConfig({
-    plugins: [react()],
-    server: { port: 5173, proxy },
-    preview: { port: 4173, proxy },
+    return {
+        plugins: [react()],
+        server: { port: 5173, proxy, watch },
+        preview: { port: 4173, proxy },
+    };
 });

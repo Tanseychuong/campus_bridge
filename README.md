@@ -141,6 +141,9 @@ docker compose up --build
 | http://localhost:8000/api/session   | The PHP API directly (JSON)                              |
 | http://localhost:8081               | phpMyAdmin (user `root`, password `campusbridge-dev`)  |
 
+- **Port 8000 already in use?** Create a `.env` file next to `docker-compose.yml` containing `API_PORT=8010`
+  (or any free port), then `docker compose up -d --force-recreate api`. If the API's port is taken, Docker
+  starts the `api` container without a network, and the website shows "cannot reach its server".
 - The first start imports `backend/database/schema.sql` and `backend/database/seed.sql` automatically.
 - The first start also runs `npm install` inside the `web` container, so it takes a minute or two.
 - Your code is shared with the containers: React changes appear instantly (Vite "hot reload"),

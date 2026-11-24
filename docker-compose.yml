@@ -17,6 +17,7 @@ services:
       - "8080:5173"
     environment:
       API_PROXY_TARGET: http://api
+      VITE_POLL: "1"   # notice file edits made on Windows/macOS (live reload)
     volumes:
       - ./frontend:/app
       - frontend-modules:/app/node_modules   # keep Linux packages separate from your computer's
@@ -29,7 +30,9 @@ services:
       context: ./backend
       dockerfile: docker/Dockerfile
     ports:
-      - "8000:80"
+      # If port 8000 is taken on your computer, set API_PORT in a .env file next to this one
+      # (e.g. API_PORT=8010). Otherwise Docker cannot start this container on the network.
+      - "${API_PORT:-8000}:80"
     environment:
       DB_HOST: db
       DB_PORT: "3306"

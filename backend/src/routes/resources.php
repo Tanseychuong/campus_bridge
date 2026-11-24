@@ -9,38 +9,44 @@ route('GET', '/api/resources', function (): array {
     return [
         'resources'  => array_map('present_resource', get_published_resources()),
         'my_uploads' => $user ? array_map('present_resource', get_resources_by_uploader((int) $user['id'])) : [],
-        // Guests see the button too; it leads them to sign in first.
-        'can_share'  => $user === null || $user['role'] === 'student',
+        // Guests see the button too; it leads them to sign in first. Admins add material directly.
+        'can_share'  => $user === null || in_array($user['role'], ['student', 'admin'], true),
     ];
 });
 
-/** GET /api/resources/options — the organizations a student can send a resource to, grouped by campus. */
+/**
+ * GET /api/resources/options — the organizations a resource can be filed under, grouped by campus.
+ * Students: only organizations with a rep to review it. Admins: every organization (their upload is published at once).
+ */
 route('GET', '/api/resources/options', function (): array {
-    require_role('student');
+    $user = require_role('student', 'admin');
+    $isAdmin = $user['role'] === 'admin';
     $groups = [];
-    foreach (get_reviewing_organizations() as $campusName => $organizations) {
+    foreach (get_reviewing_organizations(!$isAdmin) as $campusName => $organizations) {
         $groups[] = [
             'campus'        => $campusName,
             'organizations' => array_map(fn ($id, $name) => ['id' => (int) $id, 'name' => $name], array_keys($organizations), $organizations),
         ];
     }
-    return ['groups' => $groups];
+    return ['groups' => $groups, 'publishes_directly' => $isAdmin];
 });
 
 /**
  * POST /api/resources   (multipart form: the fields below + "file")
  * A student uploads a file and signs the intellectual-property declaration.
  * It stays private until the chosen organization's rep publishes it.
+ * An admin's upload is published straight away (it is still scanned in the background).
  */
 route('POST', '/api/resources', function (): array {
-    $user = require_role('student');
+    $user = require_role('student', 'admin');
+    $isAdmin = $user['role'] === 'admin';
 
     // A file bigger than PHP's post_max_size empties the whole form.
     if ($_POST === [] && (int) ($_SERVER['CONTENT_LENGTH'] ?? 0) > 0) {
         abort(413, 'That file is too large. The maximum is 10 MB.');
     }
 
-    $organizations = array_replace([], ...array_values(get_reviewing_organizations())); // flat [id => name], keeping the ids
+    $organizations = array_replace([], ...array_values(get_reviewing_organizations(!$isAdmin))); // flat [id => name], keeping the ids
     $values = [];
     foreach (['title', 'description', 'organization_id', 'ip_ownership', 'ip_credits', 'license', 'declared_name',
               'confirm_rights', 'confirm_no_confidential', 'confirm_takedown'] as $field) {
@@ -56,11 +62,13 @@ route('POST', '/api/resources', function (): array {
         abort_with_form_errors($errors);
     }
 
-    $id = create_resource($values, $_FILES['file'], $extension, $mime, (int) $user['id']);
+    $id = create_resource($values, $_FILES['file'], $extension, $mime, (int) $user['id'], $isAdmin);
     http_response_code(201);
     return [
         'id'      => $id,
-        'message' => '“' . $values['title'] . '” was sent to ' . $organizations[(int) $values['organization_id']] . ' for review.',
+        'message' => $isAdmin
+            ? '“' . $values['title'] . '” was added and is now public. The automatic check runs in the background — see the Admin page.'
+            : '“' . $values['title'] . '” was sent to ' . $organizations[(int) $values['organization_id']] . ' for review.',
     ];
 });
 

@@ -37,6 +37,10 @@ route('POST', '/api/login', function (): array {
     }
 
     unset($_SESSION['login_failures'], $_SESSION['login_locked_until']);
+    $blocked = account_status_message($user);
+    if ($blocked !== null) {
+        abort(403, $blocked);
+    }
     log_in($user);
     return [
         'user'       => present_user($user),
@@ -56,7 +60,9 @@ route('POST', '/api/logout', function (): array {
 
 /**
  * POST /api/register   {"name", "email", "campus_id", "password", "password_confirm"}
- * New accounts are always "student". Admins and org reps are set up in the database.
+ * New accounts are always "student" and start 'pending': the student can sign in
+ * once a campus rep of their campus approves them (see routes/approvals.php).
+ * Admins, org reps and campus reps are set up in the database.
  */
 route('POST', '/api/register', function (): array {
     if (is_signed_in()) {
@@ -78,14 +84,15 @@ route('POST', '/api/register', function (): array {
         abort_with_form_errors($errors);
     }
 
-    $userId = create_student_account($input['name'], $input['email'], $input['password'], (int) $input['campus_id']);
-    $user = find_user_by_id($userId);
-    log_in($user);
+    $campusId = (int) $input['campus_id'];
+    create_student_account($input['name'], $input['email'], $input['password'], $campusId);
     http_response_code(201); // 201 Created
     return [
-        'user'       => present_user($user),
+        'user'       => null, // not signed in until approved
+        'pending'    => true,
         'csrf_token' => csrf_token(),
-        'message'    => 'Your account is ready. Choose a few interests to get recommendations.',
+        'message'    => 'Thanks for signing up! A campus representative for ' . get_campuses()[$campusId]
+            . ' will check your account. You can sign in as soon as it is approved.',
     ];
 });
 

@@ -65,7 +65,7 @@ export function Login() {
 
                 <p className="muted small">No account yet? <Link to="/register">Create one</Link>.</p>
                 <Notice title="Demo accounts (sample data only)">
-                    student@example.org, rep@example.org or admin@example.org — password <code>CampusBridge2026!</code>. These exist
+                    student@example.org, rep@example.org, campus@example.org (campus rep) or admin@example.org — password <code>CampusBridge2026!</code>. These exist
                     only in the sample database; change or delete them before any real use.
                 </Notice>
             </div>
@@ -75,7 +75,7 @@ export function Login() {
 
 export function Register() {
     useTitle('Create account');
-    const { user, meta, applySession, notify } = useSession();
+    const { user, meta, applySession } = useSession();
     const navigate = useNavigate();
     const [form, setForm] = useState({ name: '', email: '', campus_id: '', password: '', password_confirm: '' });
     const [failure, setFailure] = useState({ message: '', errors: {} });
@@ -91,9 +91,8 @@ export function Register() {
         setBusy(true);
         try {
             const answer = await api.post('/api/register', form);
-            applySession(answer);
-            notify(answer.message, 'success', true);
-            navigate('/dashboard');
+            applySession(answer); // still signed out: a campus rep must approve the account first
+            navigate('/login', { state: { notice: answer.message } });
         } catch (error) {
             setFailure({ message: error.message, errors: error.errors });
             setBusy(false);
@@ -108,6 +107,7 @@ export function Register() {
             <div className="card form-card">
                 <h1>Create your account</h1>
                 <p className="muted">Free for students. We only store your name, email and the choices you make in CampusBridge.</p>
+                <p className="muted small">A campus representative checks every new account. You can sign in once yours is approved.</p>
 
                 <FormAlert message={failure.message} />
 

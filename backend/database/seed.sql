@@ -368,6 +368,15 @@ INSERT INTO users (name, email, password_hash, role, organization_id, campus_id)
     ('Yaa Nkansah (demo rep)', 'rep15@example.org', '$2y$10$xzw2xzmJrYFYdBQL2hL.GelkmD/a.e2RfqSBM1MhsIXU52FMAWSMi', 'org_rep', 15, 2),
     ('Fiifi Acquah (demo rep)', 'rep16@example.org', '$2y$10$xzw2xzmJrYFYdBQL2hL.GelkmD/a.e2RfqSBM1MhsIXU52FMAWSMi', 'org_rep', 16, 1);
 
+-- One campus rep per campus: they approve the students who sign up for their campus.
+INSERT INTO users (name, email, password_hash, role, organization_id, campus_id) VALUES
+    ('Adjoa Mensah (demo campus rep)', 'campus@example.org', '$2y$10$xzw2xzmJrYFYdBQL2hL.GelkmD/a.e2RfqSBM1MhsIXU52FMAWSMi', 'campus_rep', NULL, 1),
+    ('Kwaku Boadu (demo campus rep)', 'campus2@example.org', '$2y$10$xzw2xzmJrYFYdBQL2hL.GelkmD/a.e2RfqSBM1MhsIXU52FMAWSMi', 'campus_rep', NULL, 2);
+
+-- A new student still waiting for the Hillside campus rep to approve their sign-up.
+INSERT INTO users (name, email, password_hash, role, organization_id, campus_id, status) VALUES
+    ('Selorm Agbeko (waiting for approval)', 'pending@example.org', '$2y$10$xzw2xzmJrYFYdBQL2hL.GelkmD/a.e2RfqSBM1MhsIXU52FMAWSMi', 'student', NULL, 1, 'pending');
+
 -- ---------------------------------------------------------------- campuses & visibility
 -- Every organization starts on Hillside Campus (id 1); these five are on Riverside.
 UPDATE organizations SET campus_id = 2 WHERE id IN (8, 9, 13, 14, 15);

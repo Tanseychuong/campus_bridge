@@ -65,9 +65,10 @@ final class CampusAndResourcesTest extends WebTestCase
         return $this->post('api/resources', $form);
     }
 
-    private function decide(int $resourceId, string $decision, string $note = ''): array
+    /** $confirm: the rep ticked "I checked the file myself" (needed when there is a breach warning). */
+    private function decide(int $resourceId, string $decision, string $note = '', bool $confirm = false): array
     {
-        return $this->post("api/manage/resources/$resourceId", ['decision' => $decision, 'note' => $note]);
+        return $this->post("api/manage/resources/$resourceId", ['decision' => $decision, 'note' => $note, 'confirm_breach' => $confirm ? 'yes' : '']);
     }
 
     /** The rep's view of one resource on the Manage page. */
@@ -113,8 +114,10 @@ final class CampusAndResourcesTest extends WebTestCase
         $this->assertSame(404, $this->get("api/resources/$resourceId/download")['status']);
         $this->assertNotContains($title, $this->titlesIn($this->get('api/resources'), 'resources'));
 
-        // 2. The rep sees the declaration and publishes it.
+        // 2. The automatic check runs; the rep sees the declaration and publishes it.
+        $this->runScanWorker();
         $this->signIn('rep@example.org');
+        $this->assertNull($this->managedResource($title)['scan']['breach_warning']);
         $this->assertSame('I created all of it myself', $this->managedResource($title)['declaration']['ownership']);
         $this->decide($resourceId, 'publish');
         $this->signOut();
@@ -165,9 +168,12 @@ final class CampusAndResourcesTest extends WebTestCase
         $this->assertSeeText('Open Design Studio', $options);
 
         $title = 'Figma shortcuts cheat sheet ' . uniqid();
-        $upload = ['organization_id' => (string) $this->idOf('organizations', 'Open Design Studio'), 'declared_name' => 'Kwame Darko'] + $this->uploadForm($title);
+        // Its own content: the same bytes as another student's upload would (rightly) be flagged as a copy.
+        $upload = ['organization_id' => (string) $this->idOf('organizations', 'Open Design Studio'), 'declared_name' => 'Kwame Darko']
+            + $this->uploadForm($title, "%PDF-1.4\n% Kwame's own cheat sheet " . uniqid() . "\n");
         $resourceId = $this->upload($upload)['json']['id'];
         $this->signOut();
+        $this->runScanWorker();
 
         $this->signIn('rep@example.org'); // Code & Circuits: not theirs
         $this->assertNull($this->managedResource($title));
@@ -206,6 +212,61 @@ final class CampusAndResourcesTest extends WebTestCase
         $this->assertGreaterThan(0, $this->managedResource($risky)['scan']['critical_count']);
         $this->assertSame('clean', $this->managedResource($clean)['scan']['state']);
         $this->assertStringNotContainsString('esi@example.org', $manage['body']); // the rep's view does not repeat the personal data
+
+        // Serious findings put a "potential rule breach" warning on the approval,
+        // and publishing needs the rep to confirm they checked the file themselves.
+        $this->assertStringContainsString('serious problems', $this->managedResource($risky)['scan']['breach_warning']);
+        $this->assertNull($this->managedResource($clean)['scan']['breach_warning']);
+        $riskyId = $this->idOf('resources', $risky);
+        $refused = $this->decide($riskyId, 'publish');
+        $this->assertSame(409, $refused['status']);
+        $this->assertSeeText('Potential rule breach', $refused);
+        $this->assertSeeText('is now public', $this->decide($riskyId, 'publish', '', true));
+    }
+
+    public function test_publishing_before_the_check_has_run_needs_confirmation(): void
+    {
+        $title = 'Unchecked upload ' . uniqid();
+        $this->signIn('student@example.org');
+        $resourceId = $this->upload($this->uploadForm($title))['json']['id'];
+        $this->signOut();
+
+        $this->signIn('rep@example.org');
+        $this->assertStringContainsString('has not finished yet', $this->managedResource($title)['scan']['breach_warning']);
+        $this->assertSame(409, $this->decide($resourceId, 'publish')['status']);
+        $this->assertSame(200, $this->decide($resourceId, 'publish', '', true)['status']);
+    }
+
+    /* ---------- admins add and remove study materials ---------- */
+
+    public function test_an_admin_adds_material_to_any_organization_and_removes_it(): void
+    {
+        // Admins may file material under any organization, even one without a rep.
+        $this->signIn('admin@example.org');
+        $options = $this->get('api/resources/options');
+        $this->assertTrue($options['json']['publishes_directly']);
+
+        $title = 'Official exam timetable ' . uniqid();
+        $added = $this->upload(['declared_name' => 'Esi Owusu'] + $this->uploadForm($title));
+        $this->assertSame(201, $added['status'], $added['body']);
+        $this->assertSeeText('is now public', $added);
+        $resourceId = $added['json']['id'];
+
+        // Public straight away, and listed (with its scan state) on the Admin page.
+        $this->assertContains($title, $this->titlesIn($this->get('api/resources'), 'resources'));
+        $this->assertContains($title, $this->titlesIn($this->get('api/admin'), 'resources'));
+
+        // Only admins can remove material.
+        $this->signOut();
+        $this->signIn('rep@example.org');
+        $this->assertSame(403, $this->request('DELETE', "api/admin/resources/$resourceId", [], $this->csrfToken())['status']);
+        $this->signOut();
+
+        $this->signIn('admin@example.org');
+        $removed = $this->request('DELETE', "api/admin/resources/$resourceId", [], $this->csrfToken());
+        $this->assertSeeText('was removed', $removed);
+        $this->assertSame(404, $this->get("api/resources/$resourceId/download")['status']);
+        $this->assertNotContains($title, $this->titlesIn($this->get('api/resources'), 'resources'));
     }
 
     public function test_the_worker_spots_the_same_file_from_a_different_student(): void

@@ -96,30 +96,41 @@ function event_form_times(array $input): array
     return [to_database($start), to_database($end)];
 }
 
+/** A person's name: the error message, or null when it is fine. Used by sign-up and the profile page. */
+function name_error(string $name): ?string
+{
+    return mb_strlen($name) < 2 || mb_strlen($name) > 80 ? 'Enter your name (2–80 characters).' : null;
+}
+
+/** A new password and its confirmation: ['password' => msg, 'password_confirm' => msg] for what is wrong. */
+function new_password_errors(string $password, string $confirm): array
+{
+    $errors = [];
+    if (strlen($password) < 10) {
+        $errors['password'] = 'Use at least 10 characters for your password.';
+    } elseif (strlen($password) > 72) {
+        $errors['password'] = 'Use 72 characters or fewer.'; // bcrypt only uses the first 72 bytes
+    }
+    if ($confirm !== $password) {
+        $errors['password_confirm'] = 'The two passwords do not match.';
+    }
+    return $errors;
+}
+
 /** Checks the sign-up form. $campusIds are the campuses a student may choose. */
 function validate_registration(array $input, array $campusIds): array
 {
     $errors = [];
 
-    $name = $input['name'] ?? '';
-    if (mb_strlen($name) < 2 || mb_strlen($name) > 80) {
-        $errors['name'] = 'Enter your name (2–80 characters).';
+    if (($nameError = name_error($input['name'] ?? '')) !== null) {
+        $errors['name'] = $nameError;
     }
 
     if (filter_var($input['email'] ?? '', FILTER_VALIDATE_EMAIL) === false) {
         $errors['email'] = 'Enter a valid email address.';
     }
 
-    $password = $input['password'] ?? '';
-    if (strlen($password) < 10) {
-        $errors['password'] = 'Use at least 10 characters for your password.';
-    } elseif (strlen($password) > 72) {
-        $errors['password'] = 'Use 72 characters or fewer.'; // bcrypt only uses the first 72 bytes
-    }
-
-    if (($input['password_confirm'] ?? '') !== $password) {
-        $errors['password_confirm'] = 'The two passwords do not match.';
-    }
+    $errors += new_password_errors($input['password'] ?? '', $input['password_confirm'] ?? '');
 
     if (!in_array((int) ($input['campus_id'] ?? 0), $campusIds, true)) {
         $errors['campus_id'] = 'Choose your campus.';

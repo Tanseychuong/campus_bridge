@@ -447,6 +447,33 @@ function scan_resource_file(array $resource): array
     return ['flags' => sort_scan_flags($flags), 'sha256' => $sha256];
 }
 
+/**
+ * Why publishing this resource might break the rules, or null when the automatic check passed.
+ *
+ *   - the check FAILED (the file could not be read), so nobody knows what is inside;
+ *   - the check found CRITICAL problems (personal data, publisher copyright, a copied file...);
+ *   - the check has not finished yet.
+ *
+ * The reviewer may still publish, but only after confirming they checked the file
+ * themselves (see POST /api/manage/resources/{id}). The scanner never decides alone.
+ */
+function resource_breach_warning(array $resource): ?string
+{
+    if ($resource['scan_status'] === 'failed') {
+        return 'The automatic privacy & copyright check could not read this file, so it was not checked. It may break the sharing rules.';
+    }
+    $flags = resource_scan_flags($resource);
+    if ($flags === null) {
+        return 'The automatic privacy & copyright check has not finished yet, so this file has not been checked.';
+    }
+    $critical = count(array_filter($flags, fn ($flag) => $flag['severity'] === 'critical'));
+    if ($critical > 0) {
+        return "The automatic check found $critical serious " . ($critical === 1 ? 'problem' : 'problems')
+            . ' (privacy or copyright). Publishing it may break the sharing rules.';
+    }
+    return null;
+}
+
 /** The saved flags of a resource row, or null while it has not been scanned yet. */
 function resource_scan_flags(array $resource): ?array
 {

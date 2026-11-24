@@ -1,40 +1,77 @@
 /*
- * The frame around every page: skip link, header with navigation, the flash
- * message, the page itself (<Outlet />) and the footer.
+ * The frame around every page: skip link, the top bar (logo + search, icon
+ * tabs, account menu), the flash message, the page itself (<Outlet />) and
+ * the footer.
  */
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Link, NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { api } from '../api.js';
 import { useSession } from '../session.jsx';
+import { Icon, InitialsAvatar } from './icons.jsx';
 import { LogoMark } from './ui.jsx';
 
-const DISCOVER_LINKS = [['/explore', 'Explore'], ['/events', 'Events'], ['/organizations', 'Organizations'], ['/resources', 'Resources']];
+/** The icon tabs in the middle of the top bar. */
+export const MAIN_TABS = [
+    ['/', 'Home', 'home'],
+    ['/explore', 'Explore', 'explore'],
+    ['/events', 'Events', 'events'],
+    ['/organizations', 'Organizations', 'organizations'],
+    ['/resources', 'Resources', 'resources'],
+];
+
+/** Links for the signed-in user (account menu and the home sidebar). */
+export function personalLinks(user) {
+    if (!user) {
+        return [];
+    }
+    const links = [
+        ['/dashboard', 'Dashboard', 'dashboard'],
+        ['/saved', 'Saved', 'saved'],
+        ['/calendar', 'Calendar', 'calendar'],
+    ];
+    if (user.role === 'org_rep') {
+        links.push(['/manage', 'Manage', 'manage']);
+    }
+    if (user.role === 'admin') {
+        links.push(['/admin', 'Admin', 'admin']);
+    }
+    if (user.role === 'campus_rep' || user.role === 'admin') {
+        links.push(['/approvals', 'Approvals', 'approvals']);
+    }
+    links.push(['/preferences', 'Preferences', 'preferences']);
+    return links;
+}
 
 export function Layout() {
     const { user, flash, notify, applySession } = useSession();
     const [menuOpen, setMenuOpen] = useState(false);
+    const menuRef = useRef(null);
     const location = useLocation();
     const navigate = useNavigate();
+    const isHome = location.pathname === '/';
 
-    // Close the small-screen menu after moving to another page, and start at the top.
+    // Close the account menu after moving to another page, and start at the top.
     useEffect(() => {
         setMenuOpen(false);
         window.scrollTo(0, 0);
     }, [location.pathname]);
 
-    // Close the menu with the Escape key.
+    // Close the account menu with Escape or a click outside it.
     useEffect(() => {
         const onKey = (event) => event.key === 'Escape' && setMenuOpen(false);
+        const onClick = (event) => menuRef.current && !menuRef.current.contains(event.target) && setMenuOpen(false);
         document.addEventListener('keydown', onKey);
-        return () => document.removeEventListener('keydown', onKey);
+        document.addEventListener('mousedown', onClick);
+        return () => {
+            document.removeEventListener('keydown', onKey);
+            document.removeEventListener('mousedown', onClick);
+        };
     }, []);
 
-    const personalLinks = [['/dashboard', 'Dashboard'], ['/saved', 'Saved'], ['/calendar', 'Calendar']];
-    if (user?.role === 'org_rep') {
-        personalLinks.push(['/manage', 'Manage']);
-    }
-    if (user?.role === 'admin') {
-        personalLinks.push(['/admin', 'Admin']);
+    function search(event) {
+        event.preventDefault();
+        const q = new FormData(event.target).get('q').trim();
+        navigate(q ? `/explore?q=${encodeURIComponent(q)}` : '/explore');
     }
 
     async function signOut() {
@@ -53,42 +90,59 @@ export function Layout() {
             <a className="skip-link" href="#main">Skip to main content</a>
 
             <header className="site-header">
-                <div className="container header-row">
-                    <Link className="logo" to="/" aria-label="CampusBridge home">
-                        <LogoMark />
-                        <span>Campus<strong>Bridge</strong></span>
-                    </Link>
+                <div className="topbar">
+                    <div className="topbar-start">
+                        <Link className="logo" to="/" aria-label="CampusBridge home">
+                            <LogoMark />
+                            <span className="logo-text">Campus<strong>Bridge</strong></span>
+                        </Link>
+                        <form className="topbar-search" role="search" onSubmit={search}>
+                            <label className="sr-only" htmlFor="top-search">Search CampusBridge</label>
+                            <Icon name="search" />
+                            <input id="top-search" type="search" name="q" maxLength={100} placeholder="Search CampusBridge" />
+                        </form>
+                    </div>
 
-                    <button className="menu-button" type="button" aria-expanded={menuOpen} aria-controls="site-menu" onClick={() => setMenuOpen(!menuOpen)}>
-                        <span className="sr-only">Menu</span>
-                        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16" /></svg>
-                    </button>
+                    <nav className="topbar-tabs" aria-label="Main">
+                        {MAIN_TABS.map(([path, label, icon]) => (
+                            <NavLink key={path} to={path} end={path === '/'} className="icon-tab" title={label}>
+                                <Icon name={icon} />
+                                <span className="icon-tab-label">{label}</span>
+                            </NavLink>
+                        ))}
+                    </nav>
 
-                    <div className={`site-menu${menuOpen ? ' is-open' : ''}`} id="site-menu">
-                        <nav aria-label="Main">
-                            <ul className="nav-list">
-                                {DISCOVER_LINKS.map(([path, label]) => <li key={path}><NavLink to={path}>{label}</NavLink></li>)}
-                                <li className="nav-divider" aria-hidden="true"></li>
-                                {personalLinks.map(([path, label]) => <li key={path}><NavLink to={path}>{label}</NavLink></li>)}
-                            </ul>
-                        </nav>
-
-                        <div className="account-area">
-                            {user ? (
-                                <>
-                                    <Link className="account-name" to="/preferences" title="Preferences">
-                                        {user.name}
-                                        <span className="role-tag">{user.role_label}</span>
+                    <div className="topbar-end">
+                        {user ? (
+                            <div className="account-menu" ref={menuRef}>
+                                <button className="avatar-button" type="button" aria-expanded={menuOpen} aria-controls="account-panel" onClick={() => setMenuOpen(!menuOpen)}>
+                                    <InitialsAvatar name={user.name} size="small" src={user.avatar_url} />
+                                    <span className="sr-only">Account menu for {user.name}</span>
+                                </button>
+                                <div className="account-panel card" id="account-panel" hidden={!menuOpen}>
+                                    <Link className="account-panel-head" to="/profile">
+                                        <InitialsAvatar name={user.name} src={user.avatar_url} />
+                                        <span>
+                                            <strong>{user.name}</strong>
+                                            <span className="muted small">{user.role_label} · View your profile</span>
+                                        </span>
                                     </Link>
-                                    <button className="button button-ghost button-small" type="button" onClick={signOut}>Sign out</button>
-                                </>
-                            ) : (
-                                <>
-                                    <Link className="button button-ghost button-small" to="/login">Sign in</Link>
-                                    <Link className="button button-primary button-small" to="/register">Create account</Link>
-                                </>
-                            )}
-                        </div>
+                                    <ul className="menu-list">
+                                        {personalLinks(user).map(([path, label, icon]) => (
+                                            <li key={path}><NavLink to={path}><span className="menu-icon"><Icon name={icon} /></span>{label}</NavLink></li>
+                                        ))}
+                                        <li>
+                                            <button type="button" onClick={signOut}><span className="menu-icon"><Icon name="signout" /></span>Sign out</button>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+                        ) : (
+                            <>
+                                <Link className="button button-ghost button-small" to="/login">Sign in</Link>
+                                <Link className="button button-primary button-small" to="/register">Create account</Link>
+                            </>
+                        )}
                     </div>
                 </div>
             </header>
@@ -102,34 +156,33 @@ export function Layout() {
                 <Outlet />
             </main>
 
-            <footer className="site-footer">
-                <div className="container footer-grid">
-                    <div>
-                        <p className="footer-brand"><LogoMark /> CampusBridge</p>
-                        <p className="muted small">
-                            An independent student project (CS341 Web Technologies). CampusBridge is not affiliated with
-                            or endorsed by any university. All organizations, opportunities and events shown are{' '}
-                            <strong>fictional sample data</strong>.
-                        </p>
+            {/* The home page shows these links in its right-hand column instead. */}
+            {!isHome && (
+                <footer className="site-footer">
+                    <div className="container footer-row">
+                        <FooterText />
                     </div>
-                    <nav aria-label="Footer: discover">
-                        <p className="footer-heading">Discover</p>
-                        <ul>
-                            <li><Link to="/explore?type=opportunity">Opportunities</Link></li>
-                            <li><Link to="/events">Events</Link></li>
-                            <li><Link to="/organizations">Organizations</Link></li>
-                        </ul>
-                    </nav>
-                    <nav aria-label="Footer: about">
-                        <p className="footer-heading">About</p>
-                        <ul>
-                            <li><Link to="/about">About CampusBridge</Link></li>
-                            <li><Link to="/about#recommendations">How recommendations work</Link></li>
-                            <li><Link to="/about#privacy">Privacy &amp; data</Link></li>
-                        </ul>
-                    </nav>
-                </div>
-            </footer>
+                </footer>
+            )}
+        </>
+    );
+}
+
+/** The disclaimer and about links (footer, and the home page's side column). */
+export function FooterText() {
+    return (
+        <>
+            <p>
+                CampusBridge · an independent CS341 student project, not affiliated with any university.
+                All content is fictional sample data.
+            </p>
+            <nav aria-label="About">
+                <ul className="footer-links">
+                    <li><Link to="/about">About</Link></li>
+                    <li><Link to="/about#recommendations">How recommendations work</Link></li>
+                    <li><Link to="/about#privacy">Privacy</Link></li>
+                </ul>
+            </nav>
         </>
     );
 }

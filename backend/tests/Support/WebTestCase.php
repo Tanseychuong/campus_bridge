@@ -190,12 +190,12 @@ abstract class WebTestCase extends TestCase
         $this->post('api/logout');
     }
 
-    /** Database id of a seeded item, looked up by title (seed ids are stable but titles read better in tests). */
+    /** Database id of a seeded item, looked up by title, organization name or user email (seed ids are stable but names read better in tests). */
     protected function idOf(string $table, string $title): int
     {
         $db = self::databaseSettings();
         $pdo = new PDO("mysql:host={$db['host']};port={$db['port']};dbname={$db['name']}", $db['user'], $db['password']);
-        $column = $table === 'organizations' ? 'name' : 'title';
+        $column = ['organizations' => 'name', 'users' => 'email'][$table] ?? 'title';
         $statement = $pdo->prepare("SELECT id FROM $table WHERE $column = ?");
         $statement->execute([$title]);
         return (int) $statement->fetchColumn();

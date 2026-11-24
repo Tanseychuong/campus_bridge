@@ -48,7 +48,26 @@ route('GET', '/api/admin', function (): array {
             fn ($row) => ['role' => ROLE_LABELS[$row['role']], 'total' => (int) $row['total']],
             fetch_all('SELECT role, COUNT(*) AS total FROM users GROUP BY role')
         ),
+        // Every study material, with the scan result and the "potential rule breach" warning.
+        'resources' => array_map(fn ($r) => present_resource($r) + ['scan' => present_scan($r)], get_all_resources()),
+        // Student sign-ups on every campus still waiting for a campus rep (shown as a dashboard tile).
+        'pending_signups' => (int) fetch_one("SELECT COUNT(*) AS total FROM users WHERE role = 'student' AND status = 'pending'")['total'],
     ];
+});
+
+/**
+ * DELETE /api/admin/resources/{id}
+ * Removes a study material for good (database row and file). Use "take down" on the
+ * Manage page instead if it might come back.
+ */
+route('DELETE', '/api/admin/resources/{id}', function (array $params): array {
+    require_role('admin');
+    $resource = find_resource($params['id']);
+    if ($resource === null) {
+        abort(404, 'Resource not found.');
+    }
+    delete_resource($resource);
+    return ['message' => '“' . $resource['title'] . '” was removed.'];
 });
 
 /**

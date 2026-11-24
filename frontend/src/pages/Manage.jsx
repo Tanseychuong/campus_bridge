@@ -6,6 +6,7 @@
 import { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { api } from '../api.js';
+import { BreachWarning, ScanResult } from '../components/scan.jsx';
 import { ApiView, Badge, EmptyState, FieldError, FormAlert, InterestChips, OrgAvatar, PageHeader, errorProps } from '../components/ui.jsx';
 import { useApi, useFocusFirstError, useTitle } from '../hooks.js';
 import { useSession } from '../session.jsx';
@@ -15,16 +16,14 @@ function ResourceReview({ resource: r, onDone }) {
     const { notify } = useSession();
     const [note, setNote] = useState('');
     const [busy, setBusy] = useState(false);
+    const [checked, setChecked] = useState(false); // "I checked the file myself" (only asked when there is a breach warning)
     const scan = r.scan;
+    const needsConfirm = Boolean(scan.breach_warning) && (r.status === 'pending' || r.status === 'hidden');
 
     async function decide(decision) {
-        if (decision === 'publish' && scan.critical_count > 0
-            && !window.confirm(`The automatic check found ${scan.critical_count} serious issue(s). Publish anyway?`)) {
-            return;
-        }
         setBusy(true);
         try {
-            const answer = await api.post(`/api/manage/resources/${r.id}`, { decision, note });
+            const answer = await api.post(`/api/manage/resources/${r.id}`, { decision, note, confirm_breach: checked ? 'yes' : '' });
             notify(answer.message);
             onDone();
         } catch (error) {
@@ -43,23 +42,8 @@ function ResourceReview({ resource: r, onDone }) {
                 <Badge tone={r.status_tone}>{r.status_label}</Badge>
             </div>
 
-            <div className="scan-result" data-testid="scan-result">
-                {scan.state === 'pending' && <p className="flag flag-pending">⏳ Automatic privacy &amp; copyright check in progress…</p>}
-                {scan.state === 'clean' && <p className="flag flag-ok">✓ Automatic check found no privacy or copyright issues</p>}
-                {scan.state === 'flagged' && (
-                    <>
-                        <p className="scan-heading">Automatic check: {scan.flags.length} {scan.flags.length === 1 ? 'thing' : 'things'} to look at</p>
-                        <ul className="plain-list" aria-label="Automatic privacy and copyright check">
-                            {scan.flags.map((flag) => (
-                                <li className={`flag flag-${flag.severity}`} key={flag.message}>
-                                    {flag.severity === 'critical' ? <>⛔ <span className="sr-only">Critical:</span></> : <>⚠ <span className="sr-only">Warning:</span></>}
-                                    <span className="flag-kind">{flag.kind_label}</span> {flag.message}
-                                </li>
-                            ))}
-                        </ul>
-                    </>
-                )}
-            </div>
+            {needsConfirm && <BreachWarning scan={scan} />}
+            <ScanResult scan={scan} />
 
             <details className="review-details">
                 <summary>File &amp; IP declaration</summary>
@@ -74,6 +58,13 @@ function ResourceReview({ resource: r, onDone }) {
                 <p><a className="link" href={`/api/resources/${r.id}/download`}>Download to check ({r.original_name})</a></p>
             </details>
 
+            {needsConfirm && (
+                <label className="check breach-confirm">
+                    <input type="checkbox" checked={checked} onChange={(e) => setChecked(e.target.checked)} />
+                    <span>I opened the file and checked it myself. It does not break the privacy or copyright rules.</span>
+                </label>
+            )}
+
             {r.status !== 'rejected' && (
                 <div className="review-actions">
                     {r.status === 'pending' && (
@@ -82,7 +73,9 @@ function ResourceReview({ resource: r, onDone }) {
                                 <label className="sr-only" htmlFor={`note-${r.id}`}>Note to the student</label>
                                 <input id={`note-${r.id}`} maxLength={300} placeholder="Note to the student (required to reject)" value={note} onChange={(e) => setNote(e.target.value)} />
                             </div>
-                            <button className="button button-primary button-small" type="button" disabled={busy} onClick={() => decide('publish')} aria-label={`Publish ${r.title}`}>Publish</button>
+                            <button className="button button-primary button-small" type="button" disabled={busy || (needsConfirm && !checked)} onClick={() => decide('publish')} aria-label={`Publish ${r.title}`}>
+                                {needsConfirm ? 'Publish anyway' : 'Publish'}
+                            </button>
                             <button className="button button-danger button-small" type="button" disabled={busy} onClick={() => decide('reject')} aria-label={`Reject ${r.title}`}>Reject</button>
                         </>
                     )}
@@ -90,7 +83,7 @@ function ResourceReview({ resource: r, onDone }) {
                         <button className="button button-danger button-small" type="button" disabled={busy} onClick={() => decide('hide')} aria-label={`Take down ${r.title}`}>Take down</button>
                     )}
                     {r.status === 'hidden' && (
-                        <button className="button button-secondary button-small" type="button" disabled={busy} onClick={() => decide('publish')} aria-label={`Publish ${r.title} again`}>Publish again</button>
+                        <button className="button button-secondary button-small" type="button" disabled={busy || (needsConfirm && !checked)} onClick={() => decide('publish')} aria-label={`Publish ${r.title} again`}>Publish again</button>
                     )}
                 </div>
             )}
