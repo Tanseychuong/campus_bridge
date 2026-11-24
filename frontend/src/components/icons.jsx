@@ -24,6 +24,7 @@ const PATHS = {
     place: 'M12 21s-7-6.2-7-11.5a7 7 0 0 1 14 0C19 14.8 12 21 12 21ZM12 12a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5Z',
     tag: 'M3 12V4h8l10 10-8 8L3 12ZM7.5 8.5h.01',
     campus: 'M3 21h18M5 21V10l7-5 7 5v11M9 21v-5h6v5',
+    camera: 'M4 8h3l2-3h6l2 3h3v11H4zM12 17a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7Z',
 };
 
 export function Icon({ name, className = 'icon' }) {
@@ -35,9 +36,17 @@ export function Icon({ name, className = 'icon' }) {
     );
 }
 
-/** A round avatar with initials, coloured from the name (always the same colour for the same name). */
-export function InitialsAvatar({ name, size = 'medium' }) {
-    const words = (name || '?').trim().split(/\s+/);
+/**
+ * A round avatar: the person's picture when they uploaded one (src), otherwise
+ * their initials, coloured from the name (always the same colour for the same name).
+ */
+export function InitialsAvatar({ name, size = 'medium', src = null }) {
+    if (src) {
+        return <img className={`initials initials-${size} avatar-photo`} src={src} alt="" />;
+    }
+    // Only real words count, so "Volta Learning Foundation (fictional)" gives "VL", not "V(".
+    const found = (name || '').split(/\s+/).filter((word) => /^[\p{L}\p{N}]/u.test(word));
+    const words = found.length > 0 ? found : ['?'];
     const initials = (words[0][0] + (words.length > 1 ? words[words.length - 1][0] : '')).toUpperCase();
     let hash = 0;
     for (const char of name || '') {

@@ -90,8 +90,8 @@ function Shortcuts({ user }) {
             <ul className="shortcut-list">
                 {user ? (
                     <li>
-                        <NavLink to="/dashboard">
-                            <InitialsAvatar name={user.name} size="small" />
+                        <NavLink to="/profile">
+                            <InitialsAvatar name={user.name} size="small" src={user.avatar_url} />
                             <span><strong>{user.name}</strong></span>
                         </NavLink>
                     </li>
@@ -124,7 +124,7 @@ function Composer({ user }) {
     return (
         <div className="card composer">
             <form className="composer-row" role="search" onSubmit={search}>
-                {user ? <InitialsAvatar name={user.name} /> : <span className="composer-icon"><Icon name="search" /></span>}
+                {user ? <InitialsAvatar name={user.name} src={user.avatar_url} /> : <span className="composer-icon"><Icon name="search" /></span>}
                 <label className="sr-only" htmlFor="feed-search">Search opportunities, events and organizations</label>
                 <input id="feed-search" type="search" name="q" maxLength={100}
                     placeholder={firstName ? `What are you looking for, ${firstName}?` : 'What are you looking for?'} />

@@ -9,6 +9,7 @@ import { useSession } from './session.jsx';
 import { About } from './pages/About.jsx';
 import { Admin } from './pages/Admin.jsx';
 import { Approvals } from './pages/Approvals.jsx';
+import { Profile } from './pages/Profile.jsx';
 import { EventPage, OpportunityPage, OrganizationPage } from './pages/Details.jsx';
 import { Explore } from './pages/Explore.jsx';
 import { Home } from './pages/Home.jsx';
@@ -55,6 +56,7 @@ export function App() {
                 <Route path="manage/events/:id" element={<ManageEvent />} />
                 <Route path="admin" element={<Admin />} />
                 <Route path="approvals" element={<Approvals />} />
+                <Route path="profile" element={<Profile />} />
                 <Route path="about" element={<About />} />
                 <Route path="*" element={<NotFound />} />
             </Route>

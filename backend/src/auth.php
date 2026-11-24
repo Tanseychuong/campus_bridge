@@ -125,5 +125,8 @@ function present_user(?array $user): ?array
         'role_label'      => ROLE_LABELS[$user['role']],
         'campus_id'       => $user['campus_id'] === null ? null : (int) $user['campus_id'],
         'organization_id' => $user['organization_id'] === null ? null : (int) $user['organization_id'],
+        // The file name in the address makes the browser fetch a new picture after a change.
+        'avatar_url'      => $user['avatar_name'] ? '/api/profile/avatar?v=' . $user['avatar_name'] : null,
+        'cover_url'       => $user['cover_name'] ? '/api/profile/cover?v=' . $user['cover_name'] : null,
     ];
 }

@@ -21,6 +21,7 @@ require __DIR__ . '/../src/routes/resources.php';
 require __DIR__ . '/../src/routes/manage.php';
 require __DIR__ . '/../src/routes/admin.php';
 require __DIR__ . '/../src/routes/approvals.php';
+require __DIR__ . '/../src/routes/profile.php';
 
 try {
     dispatch($_SERVER['REQUEST_METHOD'] ?? 'GET', request_path());

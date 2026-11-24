@@ -298,8 +298,8 @@ code {
 
 .explore-layout {
     display: grid;
-    grid-template-columns: 15rem minmax(0, 1fr);
-    gap: 2.5rem;
+    grid-template-columns: 17rem minmax(0, 1fr);
+    gap: 2rem;
     margin-top: 1.5rem;
     align-items: start;
 }
@@ -574,6 +574,397 @@ code {
     width: 2.6rem;
     height: 2.6rem;
     font-size: 0.9rem;
+}
+
+.initials-large {
+    width: 7rem;
+    height: 7rem;
+    font-size: 2.2rem;
+    border: 4px solid var(--white);
+}
+
+/* Profile page */
+.profile-page {
+    padding-top: 1.25rem;
+}
+
+.profile-hero {
+    overflow: hidden;
+}
+
+.profile-cover {
+    position: relative;
+    height: 10rem;
+    background:
+        radial-gradient(circle at 15% 120%, rgb(255 255 255 / 0.18) 0 30%, transparent 31%),
+        radial-gradient(circle at 85% -20%, rgb(255 255 255 / 0.12) 0 28%, transparent 29%),
+        var(--brand-600);
+    /* After the shorthand above, so an uploaded cover fills the band. */
+    background-size: cover;
+    background-position: center;
+}
+
+.profile-identity {
+    display: flex;
+    align-items: flex-end;
+    gap: 1.25rem;
+    flex-wrap: wrap;
+    padding: 0.9rem 1.5rem 1.25rem;
+}
+
+/* Only the avatar overlaps the cover; the name stays on white. */
+.profile-avatar {
+    position: relative;
+    margin-top: -4.5rem;
+    flex-shrink: 0;
+}
+
+/* An uploaded picture fills the circle without stretching. */
+.avatar-photo {
+    object-fit: cover;
+    background: var(--page);
+}
+
+/* Camera button on the avatar, and "Change cover" on the cover. */
+.picture-menu {
+    position: relative;
+}
+
+.picture-menu-avatar {
+    position: absolute;
+    right: 0.2rem;
+    bottom: 0.3rem;
+}
+
+.avatar-camera {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.2rem;
+    height: 2.2rem;
+    border: 2px solid var(--white);
+    border-radius: 99px;
+    background: var(--page);
+    color: var(--ink);
+    cursor: pointer;
+}
+
+.avatar-camera:hover {
+    background: var(--line-strong);
+}
+
+.avatar-camera .icon {
+    width: 1.1rem;
+    height: 1.1rem;
+}
+
+.picture-menu-cover {
+    position: absolute;
+    right: 1rem;
+    bottom: 0.85rem;
+}
+
+.cover-button {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.4rem 0.8rem;
+    border: 0;
+    border-radius: var(--radius-small);
+    background: rgb(255 255 255 / 0.92);
+    font: inherit;
+    font-size: 0.83rem;
+    font-weight: 600;
+    color: var(--ink);
+    cursor: pointer;
+}
+
+.cover-button:hover {
+    background: var(--white);
+}
+
+.cover-button .icon {
+    width: 1rem;
+    height: 1rem;
+}
+
+.picture-options {
+    position: absolute;
+    z-index: 30;
+    min-width: 15rem;
+    margin: 0;
+    padding: 0.35rem;
+    list-style: none;
+    box-shadow: 0 12px 28px rgb(0 0 0 / 0.14);
+}
+
+.picture-menu-cover .picture-options {
+    right: 0;
+    top: calc(100% + 0.4rem);
+}
+
+.picture-menu-avatar .picture-options {
+    left: 0;
+    top: calc(100% + 0.4rem);
+}
+
+.picture-options button {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    width: 100%;
+    padding: 0.5rem 0.6rem;
+    border: 0;
+    border-radius: 6px;
+    background: none;
+    font: inherit;
+    font-size: 0.88rem;
+    font-weight: 500;
+    color: var(--ink);
+    text-align: left;
+    cursor: pointer;
+}
+
+.picture-options button.text-danger {
+    color: var(--danger);
+}
+
+.picture-options button:hover {
+    background: var(--surface);
+}
+
+.picture-options .icon {
+    width: 1.05rem;
+    height: 1.05rem;
+}
+
+/* A small spinner while a picture uploads. */
+.picture-busy {
+    width: 1rem;
+    height: 1rem;
+    border: 2px solid var(--line-strong);
+    border-top-color: var(--brand-600);
+    border-radius: 99px;
+    animation: picture-spin 0.8s linear infinite;
+}
+
+@keyframes picture-spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.profile-names {
+    flex: 1;
+    min-width: 14rem;
+    padding-bottom: 0.2rem;
+}
+
+.profile-names h1 {
+    font-size: 1.7rem;
+    letter-spacing: -0.02em;
+}
+
+.profile-names .muted {
+    margin: 0.15rem 0 0.5rem;
+}
+
+.profile-actions {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    padding-bottom: 0.3rem;
+}
+
+.profile-layout {
+    display: grid;
+    grid-template-columns: 21rem minmax(0, 1fr);
+    gap: 1.25rem;
+    margin-top: 1.25rem;
+    align-items: start;
+}
+
+.about-list {
+    list-style: none;
+    margin: 0.75rem 0 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.85rem;
+}
+
+.about-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+}
+
+.about-row > span:last-child {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+
+.about-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.1rem;
+    height: 2.1rem;
+    border-radius: 99px;
+    background: var(--page);
+    color: var(--brand-600);
+    flex-shrink: 0;
+}
+
+.about-icon .icon {
+    width: 1.05rem;
+    height: 1.05rem;
+}
+
+.about-label {
+    font-size: 0.74rem;
+    color: var(--muted);
+}
+
+.about-value {
+    font-size: 0.92rem;
+    font-weight: 500;
+    overflow-wrap: anywhere;
+}
+
+.role-card {
+    border-left: 4px solid var(--brand-600);
+}
+
+.role-waiting {
+    margin: 0.5rem 0 0.9rem;
+    font-size: 0.9rem;
+}
+
+.role-waiting strong {
+    font-size: 1.4rem;
+    color: var(--brand-700);
+    margin-right: 0.2rem;
+}
+
+.following-list {
+    margin-top: 0.6rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+}
+
+.following-list a {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.35rem 0.4rem;
+    margin: 0 -0.4rem;
+    border-radius: var(--radius-small);
+    color: var(--ink);
+    text-decoration: none;
+    font-size: 0.9rem;
+    font-weight: 500;
+}
+
+.following-list a:hover {
+    background: var(--surface);
+    color: var(--ink);
+}
+
+.profile-stats {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 0.75rem;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.profile-stat {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    padding: 1rem 1.1rem;
+    text-decoration: none;
+    color: var(--ink);
+}
+
+.profile-stat:hover {
+    border-color: var(--brand-200);
+    color: var(--ink);
+}
+
+.profile-stat-value {
+    font-size: 1.6rem;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    color: var(--brand-700);
+    line-height: 1.15;
+}
+
+.profile-stat-label {
+    font-size: 0.8rem;
+    color: var(--muted);
+    margin-top: 0.2rem;
+}
+
+.profile-interests {
+    margin-top: 0.75rem;
+}
+
+.profile-interests .badge {
+    text-decoration: none;
+    padding: 0.25rem 0.7rem;
+    font-size: 0.8rem;
+}
+
+.settings-block {
+    padding-top: 1.1rem;
+    margin-top: 1.1rem;
+    border-top: 1px solid var(--line);
+}
+
+.settings-title {
+    font-size: 0.9rem;
+    margin-bottom: 0.6rem;
+}
+
+@media (max-width: 900px) {
+    .profile-layout {
+        grid-template-columns: 1fr;
+    }
+
+    .profile-stats {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 640px) {
+    .profile-identity {
+        flex-direction: column;
+        align-items: flex-start;
+        padding: 0.75rem 1rem 1rem;
+    }
+
+    .profile-avatar {
+        margin-top: -3.5rem;
+    }
+
+    .cover-button span {
+        display: none; /* just the camera icon on phones */
+    }
+
+    .initials-large {
+        width: 5.5rem;
+        height: 5.5rem;
+        font-size: 1.8rem;
+    }
+
+    .profile-cover {
+        height: 6rem;
+    }
 }
 
 .site-footer {
@@ -1888,17 +2279,228 @@ button.tab {
 }
 
 /* Explore */
+/* Explore: the filters card. Sections are separated by hairlines. */
 .filters {
-    padding: 1.25rem;
     display: flex;
     flex-direction: column;
-    gap: 1.25rem;
     margin-top: 0.75rem;
+    padding: 0;
+    overflow: hidden;
 }
 
-.explore-layout .filters {
-    padding: 0;
+.filters-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.9rem 1.1rem;
+    border-bottom: 1px solid var(--line);
+}
+
+.filters-title {
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+    font-size: 0.98rem;
+}
+
+.filters-count {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 1.35rem;
+    height: 1.35rem;
+    padding: 0 0.35rem;
+    border-radius: 99px;
+    background: var(--brand-600);
+    color: var(--white);
+    font-size: 0.72rem;
+    font-weight: 600;
+}
+
+.filters-head button.link {
+    font-size: 0.83rem;
+    color: var(--brand-600);
+    text-decoration: none;
+}
+
+.filters-head button.link:hover {
+    text-decoration: underline;
+}
+
+.filter-group {
+    margin: 0;
+    padding: 0.9rem 1.1rem 1rem;
     border: 0;
+    border-bottom: 1px solid var(--line);
+    min-width: 0;
+}
+
+.filter-group:last-child {
+    border-bottom: 0;
+}
+
+.filter-group-title {
+    float: left; /* lets the legend sit inside the padding like a normal heading */
+    width: 100%;
+    margin-bottom: 0.6rem;
+    padding: 0;
+    font-size: 0.72rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--muted);
+}
+
+.filter-group-title + * {
+    clear: both;
+}
+
+.filter-group select {
+    min-height: 2.35rem;
+    font-size: 0.88rem;
+}
+
+/* Radio buttons shown as a segmented control (sort order, date range): one row, equal parts. */
+.option-pills {
+    display: flex;
+    padding: 0.2rem;
+    border-radius: var(--radius-small);
+    background: var(--page);
+}
+
+.option-pill {
+    position: relative;
+    display: flex;
+    flex: 1;
+}
+
+.option-pill input {
+    position: absolute;
+    opacity: 0;
+    inset: 0;
+    margin: 0;
+    cursor: pointer;
+}
+
+.option-pill span {
+    flex: 1;
+    padding: 0.35rem 0.4rem;
+    border-radius: 6px;
+    font-size: 0.8rem;
+    font-weight: 500;
+    color: var(--muted);
+    text-align: center;
+    white-space: nowrap;
+    transition: background-color 120ms, color 120ms, box-shadow 120ms;
+}
+
+.option-pill:hover span {
+    color: var(--ink);
+}
+
+.option-pill input:checked + span {
+    background: var(--white);
+    color: var(--brand-700);
+    font-weight: 600;
+    box-shadow: 0 1px 2px rgb(0 0 0 / 0.08), 0 0 0 1px var(--brand-200);
+}
+
+.option-pill input:focus-visible + span {
+    outline: 2px solid var(--brand-500);
+    outline-offset: 2px;
+}
+
+/* Interest chips inside the filters: no raw checkbox, a tick when chosen. */
+.filters .chip-list {
+    margin: 0;
+}
+
+.filters .chip {
+    position: relative;
+    padding: 0.3rem 0.7rem;
+    font-size: 0.82rem !important;
+}
+
+.filters .chip input {
+    position: absolute;
+    opacity: 0;
+    inset: 0;
+    margin: 0;
+    cursor: pointer;
+}
+
+.filters .chip:has(input:checked)::before {
+    content: "✓";
+    font-size: 0.75rem;
+    font-weight: 700;
+}
+
+.filters .chip:has(input:focus-visible) {
+    outline: 2px solid var(--brand-500);
+    outline-offset: 2px;
+}
+
+/* Filters in use, above the results. */
+.active-filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    list-style: none;
+    margin: -0.4rem 0 1rem;
+    padding: 0;
+}
+
+.active-filter {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.25rem 0.4rem 0.25rem 0.7rem;
+    border: 1px solid var(--brand-200);
+    border-radius: 99px;
+    background: var(--brand-50);
+    color: var(--brand-700);
+    font: inherit;
+    font-size: 0.8rem;
+    font-weight: 500;
+    cursor: pointer;
+}
+
+.active-filter span {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.1rem;
+    height: 1.1rem;
+    border-radius: 99px;
+    font-size: 0.9rem;
+    line-height: 1;
+}
+
+.active-filter:hover span {
+    background: var(--brand-100);
+}
+
+@media (max-width: 900px) {
+    /* On phones the "Filters (n)" button above already names the panel. */
+    .filters-title {
+        visibility: hidden;
+    }
+
+    .filters-head {
+        padding: 0.4rem 1.1rem;
+    }
+
+    .filters-head:not(:has(button)) {
+        display: none;
+    }
+}
+
+@media (min-width: 901px) {
+    /* The filters stay in view while the results scroll. */
+    .explore-layout aside {
+        position: sticky;
+        top: 4.75rem;
+    }
 }
 
 .filters-toggle>summary {
@@ -2588,11 +3190,6 @@ input[type="file"] {
 
     .side-card {
         position: static;
-    }
-
-    .explore-layout .filters {
-        padding: 1.25rem;
-        border: 1px solid var(--line);
     }
 
     .summary-grid {

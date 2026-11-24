@@ -82,6 +82,9 @@ CREATE TABLE users (
     review_note     VARCHAR(300) NULL,
     reviewed_by     INT UNSIGNED NULL,
     reviewed_at     DATETIME     NULL,
+    -- Profile and cover pictures: random file names in storage/uploads/profile (outside public/).
+    avatar_name     VARCHAR(40)  NULL,
+    cover_name      VARCHAR(40)  NULL,
     created_at      DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT fk_users_organization FOREIGN KEY (organization_id)
         REFERENCES organizations (id) ON DELETE SET NULL,

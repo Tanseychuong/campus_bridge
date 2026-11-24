@@ -116,15 +116,15 @@ export function Layout() {
                         {user ? (
                             <div className="account-menu" ref={menuRef}>
                                 <button className="avatar-button" type="button" aria-expanded={menuOpen} aria-controls="account-panel" onClick={() => setMenuOpen(!menuOpen)}>
-                                    <InitialsAvatar name={user.name} size="small" />
+                                    <InitialsAvatar name={user.name} size="small" src={user.avatar_url} />
                                     <span className="sr-only">Account menu for {user.name}</span>
                                 </button>
                                 <div className="account-panel card" id="account-panel" hidden={!menuOpen}>
-                                    <Link className="account-panel-head" to="/preferences">
-                                        <InitialsAvatar name={user.name} />
+                                    <Link className="account-panel-head" to="/profile">
+                                        <InitialsAvatar name={user.name} src={user.avatar_url} />
                                         <span>
                                             <strong>{user.name}</strong>
-                                            <span className="muted small">{user.role_label}</span>
+                                            <span className="muted small">{user.role_label} · View your profile</span>
                                         </span>
                                     </Link>
                                     <ul className="menu-list">
