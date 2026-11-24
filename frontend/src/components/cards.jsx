@@ -8,7 +8,21 @@ import { useEffect, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { api } from '../api.js';
 import { useSession } from '../session.jsx';
+import { Icon } from './icons.jsx';
 import { DeadlineBadge, OrgAvatar } from './ui.jsx';
+
+/**
+ * The campus an opportunity or event belongs to, in very small text under the
+ * organization's name. No campus means an outside provider: open to every campus.
+ */
+export function CampusLine({ name }) {
+    return (
+        <p className="card-campus">
+            <Icon name="campus" />
+            <span>{name ? `${name} Campus` : 'All campuses'}</span>
+        </p>
+    );
+}
 
 const TOGGLE_LABELS = {
     opportunity: ['Save', 'Saved', 'Save '],
@@ -69,6 +83,7 @@ export function OpportunityCard({ opportunity: o }) {
             <p className="card-kicker">{o.category_label}</p>
             <h3 className="card-title"><Link to={`/opportunities/${o.id}`}>{o.title}</Link></h3>
             <p className="card-subtitle">{o.provider}</p>
+            <CampusLine name={o.campus_name} />
             <div className="card-footer">
                 <DeadlineBadge deadline={o.deadline} />
                 <ToggleButton kind="opportunity" id={o.id} title={o.title} isOn={o.is_saved} />
@@ -86,6 +101,7 @@ export function EventCard({ event: e }) {
             </p>
             <h3 className="card-title"><Link to={`/events/${e.id}`}>{e.title}</Link></h3>
             <p className="card-subtitle">{e.organization_name}</p>
+            <CampusLine name={e.campus_name} />
             <div className="card-footer">
                 <span className="card-when">{e.when}</span>
                 <ToggleButton kind="event" id={e.id} title={e.title} isOn={e.is_saved} />
@@ -134,6 +150,7 @@ export function RecommendationCard({ recommendation }) {
                 <Link to={isOpportunity ? `/opportunities/${item.id}` : `/events/${item.id}`}>{item.title}</Link>
             </h3>
             <p className="card-subtitle">{isOpportunity ? item.provider : item.organization_name}</p>
+            <CampusLine name={item.campus_name} />
             {reasons.length > 0 && (
                 <details className="why-box">
                     <summary>{reasons[0].text}</summary>

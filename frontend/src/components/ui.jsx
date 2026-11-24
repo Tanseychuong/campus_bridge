@@ -25,7 +25,8 @@ export function Badge({ tone = 'neutral', children }) {
 
 /** "5 days left", coloured by urgency (the server decides the text and colour). */
 export function DeadlineBadge({ deadline }) {
-    return <Badge tone={deadline.tone}>{deadline.label}</Badge>;
+    // Deadlines are never shown in red: the most urgent ones use the plain badge, like the home feed.
+    return <Badge tone={deadline.tone === 'danger' ? 'neutral' : deadline.tone}>{deadline.label}</Badge>;
 }
 
 /** The interest tags of an item. */

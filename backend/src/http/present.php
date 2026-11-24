@@ -33,6 +33,7 @@ function present_opportunity(array $o, DateTimeImmutable $now, array $profile): 
         'title'           => $o['title'],
         'provider'        => $o['provider'],
         'organization_id' => $o['organization_id'] === null ? null : (int) $o['organization_id'],
+        'campus_name'     => $o['campus_name'] ?? null, // null: from an outside provider, open to every campus
         'category'        => $o['category'],
         'category_label'  => OPPORTUNITY_CATEGORIES[$o['category']],
         'summary'         => $o['summary'],
