@@ -19,6 +19,7 @@
 # ---------- frontend (React) ----------
 /frontend/node_modules/
 /frontend/dist/
+/frontend/.vite/
 
 # ---------- editors / operating systems ----------
 .vscode/*
