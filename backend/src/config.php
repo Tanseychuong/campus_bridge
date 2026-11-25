@@ -28,6 +28,13 @@ $settings = [
     'debug' => false, // show detailed error messages? Only while developing.
     // Uploaded resources live OUTSIDE public/, so they can only be downloaded through GET /api/resources/{id}/download.
     'upload_dir' => dirname(__DIR__) . '/storage/uploads',
+    // Study room video calls: servers that help two browsers find a way to connect (WebRTC).
+    // A STUN server only tells a browser its public address; no video passes through it.
+    // Some strict networks also need a TURN relay; add one in config.local.php, e.g.
+    //   ['urls' => 'turn:turn.example.org:3478', 'username' => '...', 'credential' => '...']
+    'ice_servers' => [
+        ['urls' => 'stun:stun.l.google.com:19302'],
+    ],
 ];
 
 // 2. Personal settings file, if it exists

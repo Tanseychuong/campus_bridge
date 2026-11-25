@@ -25,6 +25,7 @@ const PATHS = {
     tag: 'M3 12V4h8l10 10-8 8L3 12ZM7.5 8.5h.01',
     campus: 'M3 21h18M5 21V10l7-5 7 5v11M9 21v-5h6v5',
     camera: 'M4 8h3l2-3h6l2 3h3v11H4zM12 17a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7Z',
+    focus: 'M7 3h10M7 21h10M8 3c0 4.5 8 5 8 9s-8 4.5-8 9M16 3c0 4.5-8 5-8 9s8 4.5 8 9',
 };
 
 export function Icon({ name, className = 'icon' }) {

@@ -404,7 +404,7 @@ code {
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 6.5rem;
+    width: 5.5rem; /* six tabs fit in the space five 6.5rem tabs used, so the search box keeps its width */
     margin: 0.3rem 0;
     border-radius: var(--radius-small);
     color: var(--muted);

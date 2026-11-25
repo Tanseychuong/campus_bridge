@@ -116,6 +116,7 @@ files are the PHP API in `backend/src/`.
 | Student resources with IP declaration     | ✅     | `pages/Resources.jsx`, `routes/resources.php`, `data/resources.php` |
 | Org rep: publish, reject, take down resources | ✅ | `pages/Manage.jsx`, `routes/manage.php`       |
 | Background privacy & copyright scanner    | ✅     | `backend/bin/scan-worker.php`, `resource_scan.php` |
+| Study focus rooms: shared Pomodoro timer, who's studying, break-only chat | ✅ | `frontend/src/study-rooms/`, `backend/src/study-rooms/` |
 | Deadline reminder emails                  | 📋     | Needs an email service                        |
 | Password reset by email                   | 📋     | Needs an email service                        |
 | Event registration with capacity limits   | 📋     | "I'm interested" is a bookmark, not a reservation |
