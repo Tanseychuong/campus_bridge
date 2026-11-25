@@ -18,8 +18,13 @@ export function SessionProvider({ children }) {
     const location = useLocation();
 
     // On start: who is signed in, the CSRF token, and the fixed lists.
+    // /api/session must finish FIRST: on a first visit there is no session cookie yet, and two
+    // requests sent together would each start their own PHP session. The browser keeps only one
+    // of the two cookies, which may not be the one the CSRF token belongs to, so the first
+    // sign-in or sign-up would fail with "Your session expired".
     useEffect(() => {
-        Promise.all([api.get('/api/session'), api.get('/api/meta')])
+        api.get('/api/session')
+            .then((session) => api.get('/api/meta').then((metaData) => [session, metaData]))
             .then(([session, metaData]) => {
                 setCsrfToken(session.csrf_token);
                 setUser(session.user);
