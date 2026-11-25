@@ -18,6 +18,8 @@ import { Login, Register } from './pages/Account.jsx';
 import { Manage, ManageEvent } from './pages/Manage.jsx';
 import { ResourceUpload, Resources } from './pages/Resources.jsx';
 import { Calendar, Dashboard, Preferences, Saved } from './pages/Student.jsx';
+import { StudyRoom } from './study-rooms/StudyRoom.jsx';
+import { StudyRooms } from './study-rooms/StudyRooms.jsx';
 
 export function App() {
     const { meta, loadError } = useSession();
@@ -45,6 +47,8 @@ export function App() {
                 <Route path="organizations/:id" element={<OrganizationPage />} />
                 <Route path="resources" element={<Resources />} />
                 <Route path="resources/new" element={<ResourceUpload />} />
+                <Route path="rooms" element={<StudyRooms />} />
+                <Route path="rooms/:id" element={<StudyRoom />} />
                 <Route path="login" element={<Login />} />
                 <Route path="register" element={<Register />} />
                 <Route path="dashboard" element={<Dashboard />} />

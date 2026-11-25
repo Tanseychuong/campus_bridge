@@ -116,6 +116,7 @@ files are the PHP API in `backend/src/`.
 | Student resources with IP declaration     | ✅     | `pages/Resources.jsx`, `routes/resources.php`, `data/resources.php` |
 | Org rep: publish, reject, take down resources | ✅ | `pages/Manage.jsx`, `routes/manage.php`       |
 | Background privacy & copyright scanner    | ✅     | `backend/bin/scan-worker.php`, `resource_scan.php` |
+| Study rooms: focus rooms (shared Pomodoro timer, break-only chat and mics) and scheduled classes, with peer-to-peer video calls | ✅ | `frontend/src/study-rooms/`, `backend/src/study-rooms/` |
 | Deadline reminder emails                  | 📋     | Needs an email service                        |
 | Password reset by email                   | 📋     | Needs an email service                        |
 | Event registration with capacity limits   | 📋     | "I'm interested" is a bookmark, not a reservation |
@@ -813,6 +814,11 @@ The team is responsible for everything submitted. Each member should:
 - **One campus time zone (Africa/Accra):** supporting other campuses means making it configurable.
 - **Sign-in throttling is per browser session:** a determined attacker could bypass it by
   discarding cookies. A real deployment should also limit attempts per account or IP address.
+- **Study room video is peer to peer:** every browser sends its camera to every other browser, so a room
+  has 6 camera spots (plus a class host). Browsers learn each other's IP addresses to connect. Cameras
+  only work on `https://` or `localhost`. Some strict networks block direct connections; add a TURN relay
+  server to `ice_servers` in `config.local.php` for those. Talking rules are also applied by each
+  listener's browser, but a modified browser could still send sound, since the server never sees it.
 - **Hypotheses are unvalidated** until the survey and interviews are done.
 - **JavaScript is required:** the React app does not work with JavaScript turned off (the old PHP pages did).
 - **No production build setup yet:** Docker runs the Vite development server. For a real deployment, run

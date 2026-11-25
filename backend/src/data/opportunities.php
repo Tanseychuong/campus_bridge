@@ -5,14 +5,16 @@
 
 /**
  * Opportunities with the given status ('published', 'pending' or 'rejected').
- * The LEFT JOIN adds the name of the posting organization when there is one.
+ * The LEFT JOINs add the posting organization's name and campus when there is one
+ * (opportunities from outside providers have neither: they are open to every campus).
  */
 function get_opportunities(string $status = 'published'): array
 {
     $rows = fetch_all(
-        'SELECT opportunities.*, organizations.name AS organization_name
+        'SELECT opportunities.*, organizations.name AS organization_name, campuses.short_name AS campus_name
            FROM opportunities
            LEFT JOIN organizations ON organizations.id = opportunities.organization_id
+           LEFT JOIN campuses ON campuses.id = organizations.campus_id
           WHERE opportunities.status = ?
           ORDER BY opportunities.deadline IS NULL, opportunities.deadline, opportunities.title',
         [$status]
@@ -24,9 +26,10 @@ function get_opportunities(string $status = 'published'): array
 function find_opportunity(int $id): ?array
 {
     $row = fetch_one(
-        "SELECT opportunities.*, organizations.name AS organization_name
+        "SELECT opportunities.*, organizations.name AS organization_name, campuses.short_name AS campus_name
            FROM opportunities
            LEFT JOIN organizations ON organizations.id = opportunities.organization_id
+           LEFT JOIN campuses ON campuses.id = organizations.campus_id
           WHERE opportunities.id = ? AND opportunities.status = 'published'",
         [$id]
     );

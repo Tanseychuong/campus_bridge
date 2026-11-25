@@ -5,7 +5,7 @@
  *   right  deadlines closing soon, numbers at a glance, about links
  */
 import { Link, NavLink, useNavigate } from 'react-router-dom';
-import { ToggleButton } from '../components/cards.jsx';
+import { CampusLine, ToggleButton } from '../components/cards.jsx';
 import { Icon, InitialsAvatar } from '../components/icons.jsx';
 import { FooterText, MAIN_TABS, personalLinks } from '../components/Layout.jsx';
 import { ApiView } from '../components/ui.jsx';
@@ -165,7 +165,10 @@ function Post({ item }) {
                 <Link to={authorHref} tabIndex={-1} aria-hidden="true">
                     <InitialsAvatar name={from} />
                 </Link>
-                <Link className="post-author" to={authorHref}>{from}</Link>
+                <div className="post-author-block">
+                    <Link className="post-author" to={authorHref}>{from}</Link>
+                    <CampusLine name={item.campus_name} />
+                </div>
             </header>
 
             <div className="post-body">

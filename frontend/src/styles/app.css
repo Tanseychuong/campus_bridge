@@ -404,7 +404,7 @@ code {
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 6.5rem;
+    width: 5.5rem; /* six tabs fit in the space five 6.5rem tabs used, so the search box keeps its width */
     margin: 0.3rem 0;
     border-radius: var(--radius-small);
     color: var(--muted);
@@ -799,7 +799,7 @@ code {
     gap: 0.75rem;
 }
 
-.about-row > span:last-child {
+.about-row>span:last-child {
     display: flex;
     flex-direction: column;
     min-width: 0;
@@ -953,7 +953,8 @@ code {
     }
 
     .cover-button span {
-        display: none; /* just the camera icon on phones */
+        display: none;
+        /* just the camera icon on phones */
     }
 
     .initials-large {
@@ -1203,6 +1204,35 @@ button.link:hover {
     font-weight: 400;
     color: var(--muted);
     margin: 0.2rem 0 0;
+}
+
+/* The campus, in very small text right under the organization's name. */
+.card-campus {
+    display: flex;
+    align-items: center;
+    gap: 0.2rem;
+    margin: 0.1rem 0 0;
+    font-size: 0.66rem;
+    line-height: 1.2;
+    color: var(--faint);
+    letter-spacing: 0.01em;
+}
+
+.card-campus .icon {
+    width: 0.7rem;
+    height: 0.7rem;
+    flex-shrink: 0;
+}
+
+/* Home feed: name and campus stacked next to the avatar. */
+.post-author-block {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+
+.post-author-block .card-campus {
+    margin-top: 0;
 }
 
 .card-text {
@@ -2074,17 +2104,6 @@ button.tab {
     white-space: nowrap;
 }
 
-/* Deadline urgency (the server sends the tone). */
-.fact-danger {
-    background: var(--danger-bg);
-    border-color: #fecdca;
-}
-
-.fact-danger .icon,
-.fact-danger .fact-value {
-    color: var(--danger);
-}
-
 .fact-warning {
     background: var(--warning-bg);
     border-color: #fedf89;
@@ -2340,7 +2359,8 @@ button.tab {
 }
 
 .filter-group-title {
-    float: left; /* lets the legend sit inside the padding like a normal heading */
+    float: left;
+    /* lets the legend sit inside the padding like a normal heading */
     width: 100%;
     margin-bottom: 0.6rem;
     padding: 0;
@@ -2351,7 +2371,7 @@ button.tab {
     color: var(--muted);
 }
 
-.filter-group-title + * {
+.filter-group-title+* {
     clear: both;
 }
 
@@ -2398,14 +2418,14 @@ button.tab {
     color: var(--ink);
 }
 
-.option-pill input:checked + span {
+.option-pill input:checked+span {
     background: var(--white);
     color: var(--brand-700);
     font-weight: 600;
     box-shadow: 0 1px 2px rgb(0 0 0 / 0.08), 0 0 0 1px var(--brand-200);
 }
 
-.option-pill input:focus-visible + span {
+.option-pill input:focus-visible+span {
     outline: 2px solid var(--brand-500);
     outline-offset: 2px;
 }
@@ -2481,6 +2501,7 @@ button.tab {
 }
 
 @media (max-width: 900px) {
+
     /* On phones the "Filters (n)" button above already names the panel. */
     .filters-title {
         visibility: hidden;
@@ -2496,6 +2517,7 @@ button.tab {
 }
 
 @media (min-width: 901px) {
+
     /* The filters stay in view while the results scroll. */
     .explore-layout aside {
         position: sticky;
@@ -2957,11 +2979,11 @@ input[type="file"] {
 }
 
 /* Review lists: the title on one line, who/what underneath; each scan finding on a single line. */
-.review-item .row-between > div > span {
+.review-item .row-between>div>span {
     display: block;
 }
 
-.scan-result .flag > span:not(.sr-only) {
+.scan-result .flag>span:not(.sr-only) {
     display: inline;
 }
 

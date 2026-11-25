@@ -35,6 +35,7 @@ require_once __DIR__ . '/data/organizations.php';
 require_once __DIR__ . '/data/opportunities.php';
 require_once __DIR__ . '/data/events.php';
 require_once __DIR__ . '/data/users.php';
+require_once __DIR__ . '/study-rooms/data.php';
 require_once __DIR__ . '/http/responses.php';
 require_once __DIR__ . '/http/present.php';
 
