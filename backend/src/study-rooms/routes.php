@@ -144,7 +144,7 @@ route('POST', '/api/rooms', function (): ?array {
     send_json([
         'room_id' => $roomId,
         'message' => $isClass
-            ? 'Your class is scheduled. Students can join from its start time; you can open it earlier.'
+            ? 'Your class is scheduled. Students can wait in the waiting room; it opens at the start time, or earlier when you open it.'
             : 'Your focus room is open. Start the timer when everyone is ready.',
     ], 201);
     return null;

@@ -17,7 +17,7 @@ export const MAIN_TABS = [
     ['/events', 'Events', 'events'],
     ['/organizations', 'Organizations', 'organizations'],
     ['/resources', 'Resources', 'resources'],
-    ['/rooms', 'Focus rooms', 'focus'],
+    ['/rooms', 'Study rooms', 'focus'],
 ];
 
 /** Links for the signed-in user (account menu and the home sidebar). */
